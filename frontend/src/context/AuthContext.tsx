@@ -53,10 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: 'Password must be at least 4 characters long' };
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
 
       try {
-        const res = await fetch(`${apiUrl}/api/auth/signup`, {
+        const res = await fetch(`${apiBase}/api/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -123,12 +123,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { email, password } = credentials;
       const normalizedEmail = email.trim().toLowerCase();
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
       let serverUser: User | null = null;
       let sessionToken: string = '';
 
       try {
-        const res = await fetch(`${apiUrl}/api/auth/login`, {
+        const res = await fetch(`${apiBase}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: normalizedEmail, password }),
@@ -186,8 +186,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.removeItem(STORAGE_KEY_USER);
       localStorage.removeItem(STORAGE_KEY_TOKEN);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-      fetch(`${apiUrl}/api/auth/logout`, { method: 'POST' }).catch(() => {});
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
+      fetch(`${apiBase}/api/auth/logout`, { method: 'POST' }).catch(() => {});
     } catch (e) {
       console.error('Error during logout:', e);
     }

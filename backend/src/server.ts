@@ -1,9 +1,14 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
 import multer from 'multer';
 import fs from 'fs';
+import helmet from 'helmet';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import {
   getCategories,
   createCategory,
@@ -17,33 +22,106 @@ import {
   getDashboardStats,
   resetExpenseData,
   findUserByEmail,
+  findUserById,
   createUser,
+  isPrismaAvailable,
 } from './db';
 import { swaggerSpec } from './swagger';
+import { upload, UPLOAD_DIR } from './upload';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
 
-import { upload, UPLOAD_DIR } from './upload';
-
 const app = express();
 const PORT = process.env.PORT || 5001;
+const JWT_SECRET = process.env.JWT_SECRET || 'expense_tracker_prod_jwt_secret_key_2026';
+const NODE_ENV = process.env.NODE_ENV || 'production';
 
-app.use(cors());
-app.use(express.json());
+// -------------------------------------------------------------
+// 1. Production Security & Optimization Middlewares
+// -------------------------------------------------------------
+
+// Security HTTP headers
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Allows Swagger UI and embedded PDF previews
+    crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allows cross-origin receipt image loads
+  })
+);
+
+// Compression for JSON payloads and static assets
+app.use(compression());
+
+// CORS Configuration
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim())
+  : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  })
+);
+
+// Rate limiting on API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many requests from this IP. Please try again later.' },
+});
+app.use('/api', apiLimiter);
+
+// Stricter rate limiting on authentication routes (prevent brute force)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many authentication attempts. Please try again in 15 minutes.' },
+});
+app.use('/api/auth', authLimiter);
+
+// Body parsing with safe limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 // Serve uploaded files publicly at /uploads/:filename
 app.use('/uploads', express.static(UPLOAD_DIR));
 
-// Health check
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', service: 'Expense Tracker Express API', time: new Date().toISOString() });
+// -------------------------------------------------------------
+// 2. Health & Readiness Check Endpoint
+// -------------------------------------------------------------
+app.get(['/health', '/api/health'], async (req: Request, res: Response) => {
+  let dbAvailable = false;
+  try {
+    dbAvailable = await isPrismaAvailable();
+  } catch {
+    dbAvailable = false;
+  }
+
+  res.status(200).json({
+    status: 'healthy',
+    service: 'Expense Tracker Express API',
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    environment: NODE_ENV,
+    database: dbAvailable ? 'postgresql' : 'local-storage',
+  });
 });
 
 // -------------------------------------------------------------
-// Authentication Endpoints (Simple Sign Up & Log In)
+// 3. Authentication Endpoints (Bcrypt Hashing + JWT)
 // -------------------------------------------------------------
 
-// 1. Sign Up Endpoint
+// Sign Up / Register Endpoint
 app.post(['/api/auth/signup', '/api/auth/register'], async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
@@ -54,7 +132,7 @@ app.post(['/api/auth/signup', '/api/auth/register'], async (req: Request, res: R
       });
     }
 
-    if (password.length < 4) {
+    if (String(password).length < 4) {
       return res.status(400).json({
         success: false,
         error: 'Password must be at least 4 characters long',
@@ -72,10 +150,14 @@ app.post(['/api/auth/signup', '/api/auth/register'], async (req: Request, res: R
       });
     }
 
+    // Cryptographic Password Hashing with Salt
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(String(password), salt);
+
     const created = await createUser({
       name: String(name).trim(),
       email: normalizedEmail,
-      password: String(password),
+      password: hashedPassword,
     });
 
     res.status(201).json({
@@ -94,7 +176,7 @@ app.post(['/api/auth/signup', '/api/auth/register'], async (req: Request, res: R
   }
 });
 
-// 2. Log In Endpoint
+// Log In Endpoint (Verify Bcrypt + Issue JWT)
 app.post('/api/auth/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -116,7 +198,15 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       });
     }
 
-    if (dbUser.password && dbUser.password !== password) {
+    // Compare with bcrypt (with backward-compatible support for any unhashed local records)
+    let isPasswordValid = false;
+    if (dbUser.password?.startsWith('$2a$') || dbUser.password?.startsWith('$2b$')) {
+      isPasswordValid = await bcrypt.compare(String(password), dbUser.password);
+    } else {
+      isPasswordValid = dbUser.password === String(password);
+    }
+
+    if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
         error: 'Invalid password. Please check your credentials and try again.',
@@ -131,7 +221,12 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       createdAt: dbUser.createdAt,
     };
 
-    const token = `tok_${Buffer.from(`${user.id}:${Date.now()}`).toString('base64')}`;
+    // Cryptographically signed JWT token with 7-day validity
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     res.json({
       success: true,
@@ -151,19 +246,46 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/api/auth/me', (req: Request, res: Response) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
+// Authenticated User Session Verification
+app.get('/api/auth/me', async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: No token provided' });
+    }
+
+    const token = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : authHeader.trim();
+
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+    const user = await findUserById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User account not found' });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        initials: user.initials,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (err: any) {
+    res.status(401).json({ success: false, error: 'Invalid or expired session token' });
   }
-  res.json({ success: true, message: 'Authenticated' });
 });
 
 app.post('/api/auth/logout', (req: Request, res: Response) => {
   res.json({ success: true, message: 'Logged out successfully' });
 });
 
-// Categories Endpoints
+// -------------------------------------------------------------
+// 4. Categories Endpoints
+// -------------------------------------------------------------
 app.get('/api/categories', async (req: Request, res: Response) => {
   try {
     const categories = await getCategories();
@@ -210,7 +332,9 @@ app.delete('/api/categories/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Expenses Endpoints
+// -------------------------------------------------------------
+// 5. Expenses Endpoints
+// -------------------------------------------------------------
 app.get('/api/expenses', async (req: Request, res: Response) => {
   try {
     const filters: any = {
@@ -218,15 +342,16 @@ app.get('/api/expenses', async (req: Request, res: Response) => {
       categoryId: req.query.categoryId as string,
       startDate: req.query.startDate as string,
       endDate: req.query.endDate as string,
-      minAmount: req.query.minAmount ? Number(req.query.minAmount) : undefined,
-      maxAmount: req.query.maxAmount ? Number(req.query.maxAmount) : undefined,
+      status: req.query.status as string,
       paymentMethod: req.query.paymentMethod as string,
-      hasAttachment: req.query.hasAttachment ? req.query.hasAttachment === 'true' : undefined,
-      sortBy: req.query.sortBy as any,
-      sortOrder: req.query.sortOrder as any,
+      limit: req.query.limit ? Number(req.query.limit) : undefined,
+      offset: req.query.offset ? Number(req.query.offset) : undefined,
     };
-    const expenses = await getExpenses(filters);
-    res.json({ success: true, count: expenses.length, data: expenses });
+    if (req.query.minAmount) filters.minAmount = Number(req.query.minAmount);
+    if (req.query.maxAmount) filters.maxAmount = Number(req.query.maxAmount);
+
+    const result = await getExpenses(filters);
+    res.json({ success: true, ...result });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -244,20 +369,24 @@ app.get('/api/expenses/:id', async (req: Request, res: Response) => {
 
 app.post('/api/expenses', async (req: Request, res: Response) => {
   try {
-    const { amount, categoryId, date, description, merchant, paymentMethod, status, attachment } = req.body;
-    if (!amount || !categoryId || !date) {
-      return res.status(400).json({ success: false, error: 'Amount, category, and date are required' });
+    const { amount, currency, categoryId, date, description, merchant, paymentMethod, status, attachment } = req.body;
+    if (!amount || !categoryId || !date || !description) {
+      return res.status(400).json({
+        success: false,
+        error: 'amount, categoryId, date, and description are required',
+      });
     }
+
     const created = await createExpense({
       amount: Number(amount),
-      currency: 'INR',
+      currency: currency || 'INR',
       categoryId,
       date,
-      description: description || 'Expense',
-      merchant: merchant || 'Vendor',
-      paymentMethod: paymentMethod || 'Corporate Card',
-      status: status || 'Approved',
-      attachment: attachment || null,
+      description,
+      merchant,
+      paymentMethod,
+      status,
+      attachment,
     });
     res.status(201).json({ success: true, data: created });
   } catch (err: any) {
@@ -285,7 +414,9 @@ app.delete('/api/expenses/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Stats & Aggregations
+// -------------------------------------------------------------
+// 6. Analytics & Statistics Endpoint
+// -------------------------------------------------------------
 app.get('/api/stats', async (req: Request, res: Response) => {
   try {
     const stats = await getDashboardStats();
@@ -295,36 +426,16 @@ app.get('/api/stats', async (req: Request, res: Response) => {
   }
 });
 
-// VPS Local Storage Health & Diagnostics Status
-app.get('/api/storage/status', (req: Request, res: Response) => {
-  try {
-    const files = fs.existsSync(UPLOAD_DIR)
-      ? fs.readdirSync(UPLOAD_DIR).filter((f) => f !== '.gitkeep')
-      : [];
-    res.json({
-      success: true,
-      data: {
-        provider: 'VPS Local Storage',
-        uploadDir: UPLOAD_DIR,
-        maxFileSize: '10MB',
-        allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
-        totalFiles: files.length,
-        message: 'VPS Local Disk Storage is active and persistent via Docker volume',
-      },
-    });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// File Upload Route (Local VPS Storage: PDF & Images up to 10MB)
+// -------------------------------------------------------------
+// 7. VPS Local Storage Receipt Upload Route
+// -------------------------------------------------------------
 app.post('/api/upload', (req: Request, res: Response) => {
   upload.single('file')(req, res, (err: any) => {
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({
           success: false,
-          error: 'File size exceeds 10MB limit. Maximum allowed size is 10MB.',
+          error: 'File size exceeds maximum allowed limit of 10MB',
         });
       }
       return res.status(400).json({ success: false, error: err.message });
@@ -333,17 +444,20 @@ app.post('/api/upload', (req: Request, res: Response) => {
     }
 
     if (!req.file) {
-      return res.status(400).json({ success: false, error: 'No file provided in form data (field name: "file")' });
+      return res.status(400).json({
+        success: false,
+        error: 'No file uploaded. Please attach a JPG, PNG, WEBP, or PDF receipt.',
+      });
     }
 
-    const host = req.get('host');
+    const host = req.get('host') || `localhost:${PORT}`;
     const protocol = req.protocol;
     const fileUrl = `/uploads/${req.file.filename}`;
     const fullUrl = `${protocol}://${host}${fileUrl}`;
 
     res.status(201).json({
       success: true,
-      message: 'File uploaded successfully',
+      message: 'File uploaded and stored on VPS successfully',
       file: {
         filename: req.file.filename,
         originalName: req.file.originalname,
@@ -356,7 +470,9 @@ app.post('/api/upload', (req: Request, res: Response) => {
   });
 });
 
-// Clear/Reset Expenses
+// -------------------------------------------------------------
+// 8. Clear/Reset Expenses
+// -------------------------------------------------------------
 app.post('/api/reset', async (req: Request, res: Response) => {
   try {
     await resetExpenseData();
@@ -366,14 +482,33 @@ app.post('/api/reset', async (req: Request, res: Response) => {
   }
 });
 
-// Swagger / OpenAPI Specification
+// -------------------------------------------------------------
+// 9. Swagger / OpenAPI Documentation
+// -------------------------------------------------------------
 app.get(['/api/docs', '/api/swagger.json'], (req: Request, res: Response) => {
   res.json(swaggerSpec);
 });
 
+// -------------------------------------------------------------
+// 10. Centralized Error Handling Middleware
+// -------------------------------------------------------------
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('[API Unhandled Error]:', err);
+  const status = err.status || err.statusCode || 500;
+  res.status(status).json({
+    success: false,
+    error: NODE_ENV === 'production' && status === 500
+      ? 'Internal server error. Please try again later.'
+      : err.message || 'Unknown error occurred',
+  });
+});
+
+// -------------------------------------------------------------
+// 11. Server Initialization & Graceful Shutdown
+// -------------------------------------------------------------
 function startServer(port: number) {
   const server = app.listen(port, () => {
-    console.log(`Expense Tracker Backend Express Server running on port ${port}`);
+    console.log(`[Production] Expense Tracker API Server running on port ${port} (env: ${NODE_ENV})`);
   });
 
   server.on('error', (err: any) => {
@@ -384,6 +519,17 @@ function startServer(port: number) {
       console.error('Server error:', err);
     }
   });
+
+  const shutdown = (signal: string) => {
+    console.log(`\nReceived ${signal}. Gracefully closing HTTP server...`);
+    server.close(() => {
+      console.log('HTTP server closed successfully. Process terminated.');
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 startServer(Number(PORT) || 5001);

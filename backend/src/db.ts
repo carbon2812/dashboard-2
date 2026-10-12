@@ -350,16 +350,16 @@ export async function getExpenses(filters?: ExpenseFilterParams): Promise<Expens
         merchant: e.merchant || undefined,
         paymentMethod: e.paymentMethod as any,
         status: e.status as any,
-        attachment: e.attachment
+        attachment: (e as any).attachment
           ? {
-              id: e.attachment.id,
-              name: e.attachment.name,
-              mimeType: e.attachment.mimeType,
-              size: e.attachment.size,
-              url: e.attachment.url || e.attachment.localUrl || undefined,
-              filename: e.attachment.filename || undefined,
-              thumbnailUrl: e.attachment.thumbnailUrl || undefined,
-              localUrl: e.attachment.localUrl || undefined,
+              id: (e as any).attachment.id,
+              name: (e as any).attachment.name,
+              mimeType: (e as any).attachment.mimeType,
+              size: (e as any).attachment.size,
+              url: (e as any).attachment.url || (e as any).attachment.localUrl || undefined,
+              filename: (e as any).attachment.filename || undefined,
+              thumbnailUrl: (e as any).attachment.thumbnailUrl || undefined,
+              localUrl: (e as any).attachment.localUrl || undefined,
             }
           : null,
         createdAt: e.createdAt.toISOString(),
@@ -467,7 +467,7 @@ export async function createExpense(input: Omit<Expense, 'id' | 'createdAt' | 'u
           paymentMethod: input.paymentMethod || 'Corporate Card',
           status: input.status || 'Approved',
           attachment: input.attachment
-            ? {
+            ? ({
                 create: {
                   name: input.attachment.name,
                   mimeType: input.attachment.mimeType,
@@ -477,7 +477,7 @@ export async function createExpense(input: Omit<Expense, 'id' | 'createdAt' | 'u
                   thumbnailUrl: input.attachment.thumbnailUrl,
                   localUrl: input.attachment.localUrl,
                 },
-              }
+              } as any)
             : undefined,
         },
         include: {
@@ -491,16 +491,16 @@ export async function createExpense(input: Omit<Expense, 'id' | 'createdAt' | 'u
         amount: created.amount,
         currency: created.currency,
         categoryId: created.categoryId,
-        category: created.category
+        category: (created as any).category
           ? {
-              id: created.category.id,
-              name: created.category.name,
-              color: created.category.color,
-              icon: created.category.icon,
-              description: created.category.description || undefined,
-              budget: created.category.budget || undefined,
-              isDefault: created.category.isDefault,
-              createdAt: created.category.createdAt.toISOString(),
+              id: (created as any).category.id,
+              name: (created as any).category.name,
+              color: (created as any).category.color,
+              icon: (created as any).category.icon,
+              description: (created as any).category.description || undefined,
+              budget: (created as any).category.budget || undefined,
+              isDefault: (created as any).category.isDefault,
+              createdAt: (created as any).category.createdAt.toISOString(),
             }
           : undefined,
         date: created.date,
@@ -508,16 +508,16 @@ export async function createExpense(input: Omit<Expense, 'id' | 'createdAt' | 'u
         merchant: created.merchant || undefined,
         paymentMethod: created.paymentMethod as any,
         status: created.status as any,
-        attachment: created.attachment
+        attachment: (created as any).attachment
           ? {
-              id: created.attachment.id,
-              name: created.attachment.name,
-              mimeType: created.attachment.mimeType,
-              size: created.attachment.size,
-              url: created.attachment.url || created.attachment.localUrl || undefined,
-              filename: created.attachment.filename || undefined,
-              thumbnailUrl: created.attachment.thumbnailUrl || undefined,
-              localUrl: created.attachment.localUrl || undefined,
+              id: (created as any).attachment.id,
+              name: (created as any).attachment.name,
+              mimeType: (created as any).attachment.mimeType,
+              size: (created as any).attachment.size,
+              url: (created as any).attachment.url || (created as any).attachment.localUrl || undefined,
+              filename: (created as any).attachment.filename || undefined,
+              thumbnailUrl: (created as any).attachment.thumbnailUrl || undefined,
+              localUrl: (created as any).attachment.localUrl || undefined,
             }
           : null,
         createdAt: created.createdAt.toISOString(),
@@ -590,16 +590,16 @@ export async function updateExpense(id: string, updates: Partial<Expense>): Prom
         merchant: updated.merchant || undefined,
         paymentMethod: updated.paymentMethod as any,
         status: updated.status as any,
-        attachment: updated.attachment
+        attachment: (updated as any).attachment
           ? {
-              id: updated.attachment.id,
-              name: updated.attachment.name,
-              mimeType: updated.attachment.mimeType,
-              size: updated.attachment.size,
-              url: updated.attachment.url || updated.attachment.localUrl || undefined,
-              filename: updated.attachment.filename || undefined,
-              thumbnailUrl: updated.attachment.thumbnailUrl || undefined,
-              localUrl: updated.attachment.localUrl || undefined,
+              id: (updated as any).attachment.id,
+              name: (updated as any).attachment.name,
+              mimeType: (updated as any).attachment.mimeType,
+              size: (updated as any).attachment.size,
+              url: (updated as any).attachment.url || (updated as any).attachment.localUrl || undefined,
+              filename: (updated as any).attachment.filename || undefined,
+              thumbnailUrl: (updated as any).attachment.thumbnailUrl || undefined,
+              localUrl: (updated as any).attachment.localUrl || undefined,
             }
           : null,
         createdAt: updated.createdAt.toISOString(),
@@ -814,7 +814,7 @@ export async function findUserByEmail(email: string): Promise<any | null> {
   const normalized = email.trim().toLowerCase();
   if (await isPrismaAvailable()) {
     try {
-      const u = await prisma.user.findUnique({
+      const u = await (prisma as any).user.findUnique({
         where: { email: normalized },
       });
       if (u) return u;
@@ -827,34 +827,47 @@ export async function findUserByEmail(email: string): Promise<any | null> {
   return fileUsers.find((u: any) => u.email.toLowerCase() === normalized) || null;
 }
 
+export async function findUserById(id: string): Promise<any | null> {
+  if (await isPrismaAvailable()) {
+    try {
+      const u = await (prisma as any).user.findUnique({
+        where: { id },
+      });
+      if (u) return u;
+    } catch (err) {
+      console.warn('Prisma findUserById fallback:', err);
+    }
+  }
+
+  const fileUsers = loadUsersFile();
+  return fileUsers.find((u: any) => u.id === id) || null;
+}
+
 export async function createUser(input: {
   name: string;
   email: string;
   password: string;
-  role?: string;
-  department?: string;
   initials?: string;
 }): Promise<any> {
   const normalized = input.email.trim().toLowerCase();
   const initials =
     input.initials ||
     input.name
-      .split(' ')
+      .trim()
+      .split(/\s+/)
       .map((n) => n[0])
       .join('')
       .slice(0, 2)
       .toUpperCase() ||
-    'TM';
+    'U';
 
   if (await isPrismaAvailable()) {
     try {
-      const created = await prisma.user.create({
+      const created = await (prisma as any).user.create({
         data: {
-          name: input.name,
+          name: input.name.trim(),
           email: normalized,
           password: input.password,
-          role: input.role || 'Team Member',
-          department: input.department || 'Operations',
           initials,
         },
       });
@@ -867,11 +880,9 @@ export async function createUser(input: {
   const fileUsers = loadUsersFile();
   const newUser = {
     id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-    name: input.name,
+    name: input.name.trim(),
     email: normalized,
     password: input.password,
-    role: input.role || 'Team Member',
-    department: input.department || 'Operations',
     initials,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

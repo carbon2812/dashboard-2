@@ -32,5 +32,5 @@ EXPOSE 5001
 ENV PORT=5001
 ENV NODE_ENV=production
 
-# On container boot: push schema to Postgres, seed initial data, then run Express server
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx ts-node prisma/seed.ts && node dist/server.js"]
+# On container boot: push schema to Postgres, seed default categories, then run Express server
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && (npx ts-node prisma/seed.ts || true) && node dist/server.js"]

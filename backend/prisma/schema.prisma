@@ -37,6 +37,8 @@ model Expense {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
+  @@index([categoryId])
+  @@index([date])
   @@map("expenses")
 }
 
@@ -57,15 +59,13 @@ model Attachment {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  name       String
-  email      String   @unique
-  password   String
-  role       String   @default("Team Member")
-  department String   @default("Operations")
-  initials   String   @default("TM")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  initials  String   @default("U")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("users")
 }
