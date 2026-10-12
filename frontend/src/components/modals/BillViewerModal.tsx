@@ -87,10 +87,10 @@ export function BillViewerModal({
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Cloud Storage Status Indicator */}
+              {/* Storage Status Indicator */}
               <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-medium border border-sky-100">
                 <UploadCloud className="w-3.5 h-3.5" />
-                <span>Cloud Storage Synced</span>
+                <span>VPS Storage</span>
               </div>
 
               {/* View Original / Open Externally */}
@@ -129,7 +129,7 @@ export function BillViewerModal({
             {isImage ? (
               <div className="max-w-full max-h-[65vh] flex items-center justify-center rounded-2xl overflow-hidden bg-white p-2 shadow-sm border border-slate-200">
                 <img
-                  src={attachment.localUrl || attachment.thumbnailUrl || attachment.driveViewLink}
+                  src={fileUrl}
                   alt={attachment.name}
                   className="max-h-[60vh] max-w-full object-contain rounded-xl"
                 />
@@ -137,7 +137,7 @@ export function BillViewerModal({
             ) : isPdf ? (
               <div className="w-full h-[65vh] rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-sm flex flex-col">
                 <iframe
-                  src={attachment.localUrl || attachment.driveViewLink}
+                  src={fileUrl}
                   className="w-full h-full border-0"
                   title="PDF Document Viewer"
                 />
@@ -149,7 +149,7 @@ export function BillViewerModal({
                 </div>
                 <h4 className="text-base font-bold text-slate-900">{attachment.name}</h4>
                 <p className="mt-1 text-xs text-slate-500">
-                  Microsoft Word (.docx) documents are stored securely in cloud storage. You can inspect the document details or download it below.
+                  Document files are stored securely in VPS storage. You can inspect the document details or download it below.
                 </p>
 
                 <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-left text-xs space-y-1">
