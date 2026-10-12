@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
 import multer from 'multer';
+import fs from 'fs';
 import {
   getCategories,
   createCategory,
@@ -16,24 +17,20 @@ import {
   getDashboardStats,
   resetDemoData,
 } from './db';
-import { getCloudinaryStatus, uploadReceipt, isCloudinaryConfigured } from './cloudinary';
 import { swaggerSpec } from './swagger';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
 
+import { upload, UPLOAD_DIR } from './upload';
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Configure file upload with 15MB limit
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 },
-});
-
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads')));
+// Serve uploaded files publicly at /uploads/:filename
+app.use('/uploads', express.static(UPLOAD_DIR));
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
@@ -172,36 +169,65 @@ app.get('/api/stats', async (req: Request, res: Response) => {
   }
 });
 
-// Cloudinary Storage Health Status
-app.get('/api/cloudinary/status', (req: Request, res: Response) => {
+// VPS Local Storage Health & Diagnostics Status
+app.get(['/api/storage/status', '/api/cloudinary/status'], (req: Request, res: Response) => {
   try {
-    const status = getCloudinaryStatus();
-    res.json({ success: true, data: status });
+    const files = fs.existsSync(UPLOAD_DIR)
+      ? fs.readdirSync(UPLOAD_DIR).filter((f) => f !== '.gitkeep')
+      : [];
+    res.json({
+      success: true,
+      data: {
+        provider: 'VPS Local Storage',
+        uploadDir: UPLOAD_DIR,
+        maxFileSize: '10MB',
+        allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+        totalFiles: files.length,
+        message: 'VPS Local Disk Storage is active and persistent via Docker volume',
+      },
+    });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Bill Receipt File Upload
-app.post('/api/upload', upload.single('file'), async (req: Request, res: Response) => {
-  try {
-    const file = req.file;
-    if (!file) {
-      return res.status(400).json({ success: false, error: 'No file provided in form data' });
+// File Upload Route (Local VPS Storage: PDF & Images up to 10MB)
+app.post('/api/upload', (req: Request, res: Response) => {
+  upload.single('file')(req, res, (err: any) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          error: 'File size exceeds 10MB limit. Maximum allowed size is 10MB.',
+        });
+      }
+      return res.status(400).json({ success: false, error: err.message });
+    } else if (err) {
+      return res.status(400).json({ success: false, error: err.message });
     }
 
-    const attachment = await uploadReceipt(file.buffer, file.originalname, file.mimetype);
-    const storageProvider = isCloudinaryConfigured() ? 'Cloudinary CDN' : 'Local Storage';
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No file provided in form data (field name: "file")' });
+    }
 
-    res.json({
+    const host = req.get('host');
+    const protocol = req.protocol;
+    const fileUrl = `/uploads/${req.file.filename}`;
+    const fullUrl = `${protocol}://${host}${fileUrl}`;
+
+    res.status(201).json({
       success: true,
-      data: attachment,
-      message: `Bill uploaded to ${storageProvider} successfully`,
+      message: 'File uploaded successfully',
+      file: {
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        url: fileUrl,
+        fullUrl,
+      },
     });
-  } catch (err: any) {
-    console.error('Backend upload error:', err);
-    res.status(500).json({ success: false, error: err.message || 'Failed to upload bill attachment' });
-  }
+  });
 });
 
 // Reset Demo Data

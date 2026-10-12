@@ -80,8 +80,8 @@ export function EditExpenseModal({
         throw new Error(data.error || 'Failed to upload bill');
       }
 
-      setAttachment(data.data);
-      success('Bill Synced', `${file.name} uploaded to Cloudinary`);
+      setAttachment(data.file || data.data);
+      success('Bill Synced', `${file.name} uploaded to VPS storage`);
     } catch (err: any) {
       toastError('Upload Failed', err.message);
     } finally {

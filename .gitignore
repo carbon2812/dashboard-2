@@ -43,6 +43,8 @@ next-env.d.ts
 prisma/*.db
 prisma/*.db-journal
 
-# uploads (agar temporary files hain)
+# uploads (ignore uploaded files, keep directory)
+backend/uploads/*
+!backend/uploads/.gitkeep
 public/uploads/*
 !public/uploads/.gitkeep

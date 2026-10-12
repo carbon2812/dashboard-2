@@ -114,8 +114,8 @@ export function AddExpenseModal({
         throw new Error(data.error || 'Failed to upload bill');
       }
 
-      setAttachment(data.data);
-      success('Bill Attached & Synced', `${file.name} uploaded to Cloudinary storage`);
+      setAttachment(data.file || data.data);
+      success('Bill Attached', `${file.name} uploaded to VPS storage`);
     } catch (err: any) {
       setUploadError(err.message || 'File upload failed');
       toastError('Upload Failed', err.message);
@@ -374,7 +374,7 @@ export function AddExpenseModal({
                 </label>
                 <span className="flex items-center gap-1 text-[11px] text-sky-600 font-medium">
                   <UploadCloud className="w-3 h-3" />
-                  Cloud Storage
+                  VPS Storage
                 </span>
               </div>
 

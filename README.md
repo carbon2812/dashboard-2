@@ -1,6 +1,6 @@
 # Expense Tracker - Cloud Spend Management Dashboard
 
-A modern, high-performance Expense Tracker Dashboard cleanly organized into dedicated **frontend** and **backend** folders. Engineered with **Next.js 14**, **Node.js Express**, **Prisma ORM (PostgreSQL)**, **Cloudinary Receipt Storage**, and **Swagger OpenAPI 3.0 Documentation**.
+A modern, high-performance Expense Tracker Dashboard cleanly organized into dedicated **frontend** and **backend** folders. Engineered with **Next.js 14**, **Node.js Express**, **Prisma ORM (PostgreSQL)**, **VPS Local Receipt Storage**, and **Swagger OpenAPI 3.0 Documentation**.
 
 ---
 
@@ -25,18 +25,17 @@ expense-tracker/
 │   │   ├── server.ts             # Express Application & REST Endpoints
 │   │   ├── prisma.ts             # Prisma Database Client
 │   │   ├── db.ts                 # Database Service Layer with Seeding
-│   │   ├── cloudinary.ts         # Cloudinary Receipt Upload & Storage
+│   │   ├── upload.ts             # Multer Disk Storage & 10MB Validation
 │   │   └── swagger.ts            # OpenAPI 3.0 Specifications & Swagger Documentation
 │   ├── prisma/
 │   │   ├── schema.prisma         # Prisma Schema (PostgreSQL Category, Expense, Attachment)
 │   │   └── seed.ts               # Database Seeding Script
-│   ├── data/
-│   │   └── db.json               # Resilient Local JSON Database Fallback
-│   ├── public/uploads/           # Local Receipt Preview Fallback
+│   ├── uploads/                  # VPS Persistent Receipt Storage (/uploads)
 │   ├── package.json              # Backend Dependencies & Scripts
-│   └── .env                      # Backend Database & Cloudinary Configuration
+│   └── .env                      # Backend Database & Upload Configuration
 │
-├── package.json                  # Root Monorepo Runner (Concurrently)
+├── docker-compose.yml            # Docker Orchestration (Postgres + Backend + Frontend)
+├── package.json                  # Root Monorepo Runner
 └── README.md
 ```
 
@@ -54,13 +53,14 @@ expense-tracker/
 - **Database Seeding**: Run `npm run prisma:seed` to seed default business categories and demo disbursements.
 - **Prisma Studio**: Inspect and manage database records visually via `npm run prisma:studio`.
 
-### 3. Cloudinary Media & Receipt Storage
-- **Automatic Receipt Optimization**: Bill receipts (JPG, PNG, PDF, DOCX) uploaded directly to Cloudinary media cloud with auto-compression.
-- **In-App Receipt Viewer**: Image viewer with zoom, embedded PDF document preview, and DOCX download support.
-- **Preconfigured Credentials**: Cloud Name (`rgukte0l`) and API Key (`773645529246291`) configured in `backend/.env`.
+### 3. VPS Local Storage (PDF & Images)
+- **Local Disk Storage**: Bill receipts (JPG, PNG, WebP, PDF) uploaded directly to `backend/uploads/` via Multer.
+- **Docker Volume Persistence**: Volume mapping `./backend/uploads:/app/uploads` guarantees zero file loss across restarts.
+- **File Validation**: 10MB maximum file size limit with strict MIME type checking.
+- **Public URL Access**: Files served directly at `/uploads/:filename`.
 
 ### 4. Interactive Swagger / OpenAPI Documentation
-- **API Sandbox**: Full OpenAPI 3.0 specification available at `/api/docs` and interactive Swagger UI at [http://localhost:3000/api-docs](http://localhost:3000/api-docs) (or directly on backend at [http://localhost:5001/api-docs](http://localhost:5001/api-docs)).
+- **API Sandbox**: Full OpenAPI 3.0 specification available at `/api/docs` and interactive Swagger UI at [http://localhost:3000/api-docs](http://localhost:3000/api-docs).
 - Complete request/response schemas for all 18 endpoints.
 
 ### 5. Financial Dashboard & Custom Categories
@@ -70,18 +70,50 @@ expense-tracker/
 
 ---
 
-## Getting Started
+## Quick Start with Docker (Recommended)
+
+Run PostgreSQL, the Express Backend API, and the Next.js Frontend with a single command:
+
+```bash
+# Build and start all 3 containers in background
+docker compose up -d --build
+# or: npm run docker:up
+```
+
+### Running Containers:
+- **Frontend Dashboard**: [http://localhost:3000](http://localhost:3000)
+- **Backend Express API**: [http://localhost:5001](http://localhost:5001)
+- **Swagger Documentation**: [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+- **PostgreSQL Database**: Port `5434` (mapped to container port `5432`)
+  - Connection URL for GUI tools (DBeaver / pgAdmin / TablePlus):
+    `postgresql://postgres:postgres@localhost:5434/expense_tracker?schema=public`
+
+### Useful Docker Commands:
+```bash
+# View live logs of all containers
+npm run docker:logs
+# or: docker compose logs -f
+
+# View logs for a specific service
+docker logs -f expense_tracker_backend
+docker logs -f expense_tracker_frontend
+docker logs -f expense_tracker_postgres
+
+# Stop all containers
+npm run docker:down
+# or: docker compose down
+```
+
+---
+
+## Local Development (Without Docker)
+
+If you prefer running services directly on your host machine:
 
 ### 1. Install All Dependencies
 To install dependencies for root, frontend, and backend simultaneously:
 ```bash
 npm run install:all
-```
-
-Or install them individually:
-```bash
-cd backend && npm install
-cd ../frontend && npm install
 ```
 
 ### 2. Run Both Services Concurrently
@@ -131,11 +163,8 @@ npm run prisma:studio
 ### Backend (`backend/.env`)
 ```env
 PORT=5001
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/expense_tracker?schema=public"
-
-CLOUDINARY_CLOUD_NAME=rgukte0l
-CLOUDINARY_API_KEY=773645529246291
-CLOUDINARY_API_SECRET=your_api_secret_here
+DATABASE_URL="postgresql://postgres:postgres@localhost:5434/expense_tracker?schema=public"
+UPLOAD_DIR=./uploads
 ```
 
 ### Frontend (`frontend/.env.local`)

@@ -14,21 +14,22 @@ export interface ExpenseAttachment {
   name: string;
   mimeType: string;
   size: number;
-  cloudinaryPublicId?: string;
-  cloudinaryUrl?: string;
-  driveFileId?: string;
-  driveViewLink?: string;
-  driveDownloadLink?: string;
-  thumbnailUrl?: string;
+  url?: string;
+  filename?: string;
   localUrl?: string;
+  thumbnailUrl?: string;
 }
 
-export interface CloudinaryStatus {
-  connected: boolean;
-  cloudName: string;
-  apiKey?: string;
-  message: string;
+export interface StorageStatus {
+  provider: string;
+  uploadDir: string;
+  maxFileSize: string;
+  allowedTypes: string[];
+  totalFiles: number;
+  message?: string;
 }
+
+export type CloudinaryStatus = StorageStatus;
 
 export type PaymentMethod = 'Corporate Card' | 'Wire Transfer' | 'ACH' | 'Reimbursement' | 'Petty Cash';
 export type ExpenseStatus = 'Approved' | 'Pending Review' | 'Flagged';

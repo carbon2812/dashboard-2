@@ -73,7 +73,7 @@ export function exportExpensesToCSV(expenses: any[], categories: any[]) {
     e.paymentMethod,
     e.status,
     e.attachment ? `"${e.attachment.name}"` : 'None',
-    e.attachment?.cloudinaryUrl || e.attachment?.driveViewLink || e.attachment?.localUrl || ''
+    e.attachment?.url || e.attachment?.localUrl || ''
   ]);
 
   const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');

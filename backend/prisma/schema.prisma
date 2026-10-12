@@ -41,20 +41,17 @@ model Expense {
 }
 
 model Attachment {
-  id                 String   @id @default(cuid())
-  expenseId          String?  @unique
-  expense            Expense? @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  name               String
-  mimeType           String
-  size               Int
-  cloudinaryPublicId String?
-  cloudinaryUrl      String?
-  driveFileId        String?
-  driveViewLink      String?
-  driveDownloadLink  String?
-  thumbnailUrl       String?
-  localUrl           String?
-  createdAt          DateTime @default(now())
+  id           String   @id @default(cuid())
+  expenseId    String?  @unique
+  expense      Expense? @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  name         String
+  mimeType     String
+  size         Int
+  url          String?
+  filename     String?
+  localUrl     String?
+  thumbnailUrl String?
+  createdAt    DateTime @default(now())
 
   @@map("attachments")
 }

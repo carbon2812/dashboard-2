@@ -27,41 +27,41 @@ export default function SettingsPage() {
   const { success, error: toastError, info } = useToast();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [cloudinaryStatus, setCloudinaryStatus] = useState<CloudinaryStatus | null>(null);
-  const [checkingCloudinary, setCheckingCloudinary] = useState(false);
+  const [storageStatus, setStorageStatus] = useState<StorageStatus | null>(null);
+  const [checkingStorage, setCheckingStorage] = useState(false);
   const [testUploading, setTestUploading] = useState(false);
-  const [copiedCloudinary, setCopiedCloudinary] = useState(false);
+  const [copiedVolume, setCopiedVolume] = useState(false);
 
   // Profile Form state
   const [profileName, setProfileName] = useState('Finance Team');
   const [profileEmail, setProfileEmail] = useState('finance@expensetracker.local');
   const [currency, setCurrency] = useState('INR (₹)');
 
-  const checkCloudinaryStatus = async () => {
+  const checkStorageStatus = async () => {
     try {
-      setCheckingCloudinary(true);
-      const res = await fetch('/api/cloudinary/status');
+      setCheckingStorage(true);
+      const res = await fetch('/api/storage/status');
       const data = await res.json();
       if (data.success) {
-        setCloudinaryStatus(data.data);
+        setStorageStatus(data.data);
       }
     } catch (err: any) {
-      console.warn('Cloudinary status check error:', err);
+      console.warn('Storage status check error:', err);
     } finally {
-      setCheckingCloudinary(false);
+      setCheckingStorage(false);
     }
   };
 
   useEffect(() => {
-    checkCloudinaryStatus();
+    checkStorageStatus();
   }, []);
 
   const handleTestUpload = async () => {
     setTestUploading(true);
     try {
-      // Create a test text buffer blob
-      const testBlob = new Blob(['Sample verified corporate bill receipt document'], { type: 'text/plain' });
-      const testFile = new File([testBlob], `test-receipt-${Date.now()}.txt`, { type: 'text/plain' });
+      // Create a test PDF document blob
+      const testBlob = new Blob(['%PDF-1.4\n%Test Verified Expense Receipt Document\n%%EOF'], { type: 'application/pdf' });
+      const testFile = new File([testBlob], `test-receipt-${Date.now()}.pdf`, { type: 'application/pdf' });
 
       const formData = new FormData();
       formData.append('file', testFile);
@@ -74,8 +74,8 @@ export default function SettingsPage() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error);
 
-      success('Test Upload Successful', `Receipt uploaded to Cloudinary: ${data.data.name || 'test-receipt.txt'}`);
-      checkCloudinaryStatus();
+      success('Test Upload Successful', `Receipt saved to VPS /uploads: ${data.file?.filename || 'test-receipt.pdf'}`);
+      checkStorageStatus();
     } catch (err: any) {
       toastError('Test Upload Failed', err.message);
     } finally {
@@ -122,25 +122,25 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <span>Cloudinary Cloud Storage</span>
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 border border-sky-100">
-                      Receipt CDN
+                    <span>VPS Local Storage</span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                      Docker Persistent
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500">
-                    High-speed media storage with automatic WebP/AVIF format and responsive thumbnail delivery
+                    Local disk storage for PDF and Image receipts served publicly at /uploads with Docker volume persistence
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 self-start sm:self-auto">
                 <button
-                  onClick={checkCloudinaryStatus}
-                  disabled={checkingCloudinary}
+                  onClick={checkStorageStatus}
+                  disabled={checkingStorage}
                   className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-                  title="Refresh Cloudinary Connection Status"
+                  title="Refresh Storage Status"
                 >
-                  <RefreshCw className={`w-4 h-4 ${checkingCloudinary ? 'animate-spin text-sky-600' : ''}`} />
+                  <RefreshCw className={`w-4 h-4 ${checkingStorage ? 'animate-spin text-sky-600' : ''}`} />
                 </button>
 
                 <button
@@ -149,63 +149,71 @@ export default function SettingsPage() {
                   className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white text-xs font-semibold shadow-sm transition-all"
                 >
                   <UploadCloud className="w-3.5 h-3.5" />
-                  <span>{testUploading ? 'Testing Upload...' : 'Test Cloud Upload'}</span>
+                  <span>{testUploading ? 'Testing Upload...' : 'Test File Upload'}</span>
                 </button>
               </div>
             </div>
 
-            {/* Cloudinary Status Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Storage Status Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                <span className="text-[11px] font-semibold uppercase text-slate-400">Connection Status</span>
+                <span className="text-[11px] font-semibold uppercase text-slate-400">Storage Provider</span>
                 <div className="mt-1 flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${cloudinaryStatus?.connected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   <span className="font-bold text-sm text-slate-900">
-                    {cloudinaryStatus?.connected ? 'Live Connected' : 'Ready (Add Secret)'}
+                    {storageStatus?.provider || 'VPS Local Storage'}
                   </span>
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                <span className="text-[11px] font-semibold uppercase text-slate-400">Cloud Name</span>
-                <div className="mt-1 text-sm font-bold text-slate-900">
-                  {cloudinaryStatus?.cloudName || 'rgukte0l'}
+                <span className="text-[11px] font-semibold uppercase text-slate-400">Upload Folder</span>
+                <div className="mt-1 text-sm font-bold text-slate-900 font-mono">
+                  backend/uploads/
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                <span className="text-[11px] font-semibold uppercase text-slate-400">API Key</span>
-                <div className="mt-1 text-sm font-mono font-bold text-slate-900">
-                  {cloudinaryStatus?.apiKey || '773645529246291'}
+                <span className="text-[11px] font-semibold uppercase text-slate-400">Size Limit</span>
+                <div className="mt-1 text-sm font-bold text-slate-900">
+                  {storageStatus?.maxFileSize || '10MB Max'}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                <span className="text-[11px] font-semibold uppercase text-slate-400">Allowed Formats</span>
+                <div className="mt-1 text-sm font-bold text-slate-900">
+                  PDF, JPG, PNG, WebP
                 </div>
               </div>
             </div>
 
-            {/* Copy Config Box */}
+            {/* Docker Volume Persistence Box */}
             <div className="p-5 rounded-2xl bg-sky-50/50 border border-sky-100 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 font-semibold text-xs text-sky-900">
                   <Key className="w-4 h-4 text-sky-600" />
-                  <span>Environment Variables for .env.local</span>
+                  <span>Docker Volume Persistence (docker-compose.yml)</span>
                 </div>
                 <button
                   onClick={() => {
-                    const snippet = `CLOUDINARY_CLOUD_NAME=rgukte0l\nCLOUDINARY_API_KEY=773645529246291\nCLOUDINARY_API_SECRET=your_api_secret_here`;
+                    const snippet = `volumes:\n  - ./backend/uploads:/app/uploads`;
                     navigator.clipboard.writeText(snippet);
-                    setCopiedCloudinary(true);
-                    setTimeout(() => setCopiedCloudinary(false), 2000);
+                    setCopiedVolume(true);
+                    setTimeout(() => setCopiedVolume(false), 2000);
                   }}
                   className="flex items-center gap-1 text-[11px] font-semibold text-sky-700 hover:text-sky-900"
                 >
-                  {copiedCloudinary ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedCloudinary ? 'Copied' : 'Copy Cloudinary config'}</span>
+                  {copiedVolume ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedVolume ? 'Copied' : 'Copy Volume Config'}</span>
                 </button>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-900 text-slate-100 font-mono text-[11px] overflow-x-auto space-y-0.5">
-                <div>CLOUDINARY_CLOUD_NAME=rgukte0l</div>
-                <div>CLOUDINARY_API_KEY=773645529246291</div>
-                <div>CLOUDINARY_API_SECRET=your_api_secret_here</div>
+                <div>services:</div>
+                <div className="pl-4">backend:</div>
+                <div className="pl-8">volumes:</div>
+                <div className="pl-12 text-emerald-400">- ./backend/uploads:/app/uploads</div>
               </div>
             </div>
           </div>

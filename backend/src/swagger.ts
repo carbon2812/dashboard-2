@@ -8,7 +8,7 @@ export const swaggerSpec = {
 - **Database & ORM**: PostgreSQL powered by Prisma ORM with type-safe schema modeling.
 - **Expenses**: Multi-currency corporate transactions with receipt attachments, status flags, and advanced filtering.
 - **Categories**: Dynamic category hierarchy with color codes, icons, and monthly budget limits.
-- **Receipt & Media Uploads**: Fast multimedia asset management integrated with Cloudinary CDN.
+- **Receipt & Media Uploads**: Fast multimedia asset management stored locally on VPS with Docker volume persistence.
 - **Analytics & Intelligence**: Real-time spending velocity, budget utilization, category breakdowns, and monthly/weekly trends.
     `,
     contact: {
@@ -26,14 +26,14 @@ export const swaggerSpec = {
       description: 'Next.js Local Development Server',
     },
     {
-      url: 'http://localhost:5000',
+      url: 'http://localhost:5001',
       description: 'Standalone Express API Server',
     },
   ],
   tags: [
     { name: 'Expenses', description: 'Record, list, filter, inspect, update, and delete corporate expenses' },
     { name: 'Categories', description: 'Manage budget categories with custom colors and Lucide icons' },
-    { name: 'Media & Storage', description: 'Cloudinary CDN bill uploads and storage health checks' },
+    { name: 'Media & Storage', description: 'VPS Local Storage bill uploads and storage health checks' },
     { name: 'Analytics', description: 'Executive metrics, spending trends, and budget tracking' },
     { name: 'System', description: 'Database management and sample dataset reset' },
   ],
@@ -418,7 +418,7 @@ export const swaggerSpec = {
       post: {
         tags: ['Media & Storage'],
         summary: 'Upload Receipt / Bill Document',
-        description: 'Uploads a receipt image (JPG, PNG, WebP) or document (PDF, DOCX) to Cloudinary media cloud. Automatically falls back gracefully to resilient local disk storage if Cloudinary API secret is pending.',
+        description: 'Uploads a receipt image (JPG, PNG, WebP) or document (PDF) to VPS local disk storage (/uploads) backed by Docker volume persistence.',
         requestBody: {
           required: true,
           content: {
@@ -430,7 +430,7 @@ export const swaggerSpec = {
                   file: {
                     type: 'string',
                     format: 'binary',
-                    description: 'Invoice receipt file (Max 15MB. Supported: JPG, PNG, WebP, PDF, DOCX)',
+                    description: 'Invoice receipt file (Max 10MB. Supported: JPG, PNG, WebP, PDF)',
                   },
                 },
               },
@@ -438,7 +438,7 @@ export const swaggerSpec = {
           },
         },
         responses: {
-          200: {
+          201: {
             description: 'File uploaded and media link generated',
             content: {
               'application/json': {
@@ -446,8 +446,8 @@ export const swaggerSpec = {
                   type: 'object',
                   properties: {
                     success: { type: 'boolean', example: true },
-                    data: { $ref: '#/components/schemas/ExpenseAttachment' },
-                    message: { type: 'string', example: 'Bill uploaded to Cloudinary CDN successfully' },
+                    file: { $ref: '#/components/schemas/ExpenseAttachment' },
+                    message: { type: 'string', example: 'File uploaded successfully' },
                   },
                 },
               },
@@ -458,21 +458,21 @@ export const swaggerSpec = {
         },
       },
     },
-    '/api/cloudinary/status': {
+    '/api/storage/status': {
       get: {
         tags: ['Media & Storage'],
-        summary: 'Cloud Storage Health Status',
-        description: 'Returns real-time connection status of Cloudinary media storage, masked API key, and diagnostic messages.',
+        summary: 'Storage Health & Diagnostics Status',
+        description: 'Returns real-time status of VPS local disk storage, directory, max file size, and total file count.',
         responses: {
           200: {
-            description: 'Cloudinary status report',
+            description: 'VPS Storage status report',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
                     success: { type: 'boolean', example: true },
-                    data: { $ref: '#/components/schemas/CloudinaryStatus' },
+                    data: { $ref: '#/components/schemas/StorageStatus' },
                   },
                 },
               },
@@ -553,12 +553,10 @@ export const swaggerSpec = {
           name: { type: 'string', example: 'aws_invoice_october.pdf' },
           mimeType: { type: 'string', example: 'application/pdf' },
           size: { type: 'integer', example: 1048576, description: 'File size in bytes' },
-          cloudinaryPublicId: { type: 'string', example: 'expense-tracker/receipts/1791821844_aws_invoice' },
-          cloudinaryUrl: { type: 'string', example: 'https://res.cloudinary.com/rgukte0l/image/upload/v1/aws.pdf' },
-          driveViewLink: { type: 'string', example: 'https://res.cloudinary.com/rgukte0l/image/upload/v1/aws.pdf' },
-          driveDownloadLink: { type: 'string', example: 'https://res.cloudinary.com/rgukte0l/image/upload/v1/aws.pdf' },
-          thumbnailUrl: { type: 'string', example: 'https://res.cloudinary.com/rgukte0l/image/upload/c_fill,h_400,w_400/aws.jpg' },
-          localUrl: { type: 'string', example: '/uploads/1791821844_aws_invoice.pdf' },
+          url: { type: 'string', example: '/uploads/aws_invoice_october-1791838631007-621403032.pdf' },
+          filename: { type: 'string', example: 'aws_invoice_october-1791838631007-621403032.pdf' },
+          thumbnailUrl: { type: 'string', example: '/uploads/aws_invoice_october-1791838631007-621403032.pdf' },
+          localUrl: { type: 'string', example: '/uploads/aws_invoice_october-1791838631007-621403032.pdf' },
         },
       },
       Expense: {
@@ -648,13 +646,19 @@ export const swaggerSpec = {
           },
         },
       },
-      CloudinaryStatus: {
+      StorageStatus: {
         type: 'object',
         properties: {
-          connected: { type: 'boolean', example: false },
-          cloudName: { type: 'string', example: 'rgukte0l' },
-          apiKey: { type: 'string', example: '••••••••6291' },
-          message: { type: 'string', example: 'Cloudinary cloud credentials active' },
+          provider: { type: 'string', example: 'VPS Local Storage' },
+          uploadDir: { type: 'string', example: 'backend/uploads/' },
+          maxFileSize: { type: 'string', example: '10MB' },
+          allowedTypes: {
+            type: 'array',
+            items: { type: 'string' },
+            example: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+          },
+          totalFiles: { type: 'integer', example: 12 },
+          message: { type: 'string', example: 'VPS Local Disk Storage is active and persistent via Docker volume' },
         },
       },
       ErrorResponse: {

@@ -36,8 +36,8 @@ export function BillViewerModal({
   const isPdf = attachment.mimeType === 'application/pdf' || attachment.name.endsWith('.pdf');
   const isDocx = attachment.mimeType.includes('word') || attachment.name.endsWith('.docx') || attachment.name.endsWith('.doc');
 
-  const fileUrl = attachment.driveViewLink || attachment.localUrl || '#';
-  const downloadUrl = attachment.driveDownloadLink || attachment.localUrl || '#';
+  const fileUrl = attachment.url || attachment.localUrl || '#';
+  const downloadUrl = attachment.url || attachment.localUrl || '#';
 
   return (
     <AnimatePresence>
@@ -162,9 +162,9 @@ export function BillViewerModal({
                     <span className="font-medium text-slate-700">{formatFileSize(attachment.size)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Cloud Asset ID:</span>
+                    <span className="text-slate-400">Stored File:</span>
                     <span className="font-mono text-[10px] text-slate-600 truncate max-w-[180px]">
-                      {attachment.cloudinaryPublicId || attachment.driveFileId || 'Synced'}
+                      {attachment.filename || attachment.name}
                     </span>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export function BillViewerModal({
           <div className="px-6 py-3.5 bg-white border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>Cloud Storage Asset: <span className="font-mono text-slate-700">{attachment.cloudinaryPublicId || attachment.driveFileId || 'Synced'}</span></span>
+              <span>VPS Local Storage Asset: <span className="font-mono text-slate-700">{attachment.filename || attachment.name}</span></span>
             </div>
             <button
               onClick={onClose}

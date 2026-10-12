@@ -21,6 +21,7 @@ RUN npx prisma generate
 COPY src ./src
 COPY data ./data
 COPY public ./public
+RUN mkdir -p uploads
 
 # Compile TypeScript to dist/
 RUN npm run build

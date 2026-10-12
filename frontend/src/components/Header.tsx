@@ -57,14 +57,14 @@ export function Header({
           <span>{currentDate}</span>
         </div>
 
-        {/* Cloud Storage Status Link */}
+        {/* Local Storage Status Link */}
         <Link
           href="/settings"
           className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-xs font-medium text-slate-700 transition-colors"
-          title="Cloudinary Cloud Storage Status"
+          title="VPS Local Storage Status"
         >
           <UploadCloud className="w-3.5 h-3.5 text-sky-600" />
-          <span className="hidden md:inline">Cloud Storage</span>
+          <span className="hidden md:inline">VPS Storage</span>
           <span className="w-2 h-2 rounded-full bg-emerald-500" />
         </Link>
 
