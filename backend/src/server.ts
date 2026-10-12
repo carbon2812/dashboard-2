@@ -16,6 +16,8 @@ import {
   deleteExpense,
   getDashboardStats,
   resetDemoData,
+  findUserByEmail,
+  createUser,
 } from './db';
 import { swaggerSpec } from './swagger';
 
@@ -38,39 +40,80 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // -------------------------------------------------------------
-// Authentication Endpoints (Corporate Portal Access)
+// Authentication Endpoints (Simple Sign Up & Log In - No Roles)
 // -------------------------------------------------------------
 const DEMO_USERS: Record<string, any> = {
-  'admin@expensetracker.local': {
-    id: 'usr_admin',
-    name: 'Alex Morgan',
-    email: 'admin@expensetracker.local',
-    role: 'Executive Admin',
-    department: 'Executive Operations',
-    initials: 'AM',
+  'demo@example.com': {
+    id: 'usr_demo',
+    name: 'Demo User',
+    email: 'demo@example.com',
+    password: 'demo123',
+    initials: 'DU',
     createdAt: '2026-01-01T00:00:00.000Z',
   },
-  'finance@expensetracker.local': {
-    id: 'usr_finance',
-    name: 'Sarah Jenkins',
-    email: 'finance@expensetracker.local',
-    role: 'Finance Director',
-    department: 'Finance & Treasury',
-    initials: 'SJ',
-    createdAt: '2026-01-15T00:00:00.000Z',
-  },
-  'analyst@expensetracker.local': {
-    id: 'usr_analyst',
-    name: 'David Chen',
-    email: 'analyst@expensetracker.local',
-    role: 'Senior Financial Analyst',
-    department: 'Financial Planning',
-    initials: 'DC',
-    createdAt: '2026-02-01T00:00:00.000Z',
+  'admin@expensetracker.local': {
+    id: 'usr_admin',
+    name: 'Admin User',
+    email: 'admin@expensetracker.local',
+    password: 'admin123',
+    initials: 'AU',
+    createdAt: '2026-01-01T00:00:00.000Z',
   },
 };
 
-app.post('/api/auth/login', (req: Request, res: Response) => {
+// 1. Sign Up Endpoint
+app.post(['/api/auth/signup', '/api/auth/register'], async (req: Request, res: Response) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Name, email, and password are required',
+      });
+    }
+
+    if (password.length < 4) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 4 characters long',
+      });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    // Check if user already exists
+    const existing = await findUserByEmail(normalizedEmail);
+    if (existing || DEMO_USERS[normalizedEmail]) {
+      return res.status(400).json({
+        success: false,
+        error: 'An account with this email already exists. Please log in.',
+      });
+    }
+
+    const created = await createUser({
+      name: String(name).trim(),
+      email: normalizedEmail,
+      password: String(password),
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Account created successfully! Please log in with your credentials.',
+      user: {
+        id: created.id,
+        name: created.name,
+        email: created.email,
+        initials: created.initials,
+        createdAt: created.createdAt,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2. Log In Endpoint
+app.post('/api/auth/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -82,37 +125,39 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
 
     const normalizedEmail = String(email).trim().toLowerCase();
     
-    // Check known demo accounts
+    // Check demo accounts
     let user = DEMO_USERS[normalizedEmail];
-    
-    // If not a pre-registered demo account, allow standard valid credentials
-    if (!user) {
-      if (password.length < 4) {
+
+    if (user) {
+      if (password !== user.password) {
         return res.status(401).json({
           success: false,
-          error: 'Password must be at least 4 characters long',
+          error: 'Invalid password. For demo account use demo123 or admin123',
         });
       }
-      const namePart = normalizedEmail.split('@')[0].replace(/[._-]/g, ' ');
-      const formattedName = namePart
-        .split(' ')
-        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-        .join(' ') || 'Finance User';
-      const initials = formattedName
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase() || 'FU';
+    } else {
+      // Check registered accounts in database
+      const dbUser = await findUserByEmail(normalizedEmail);
+      if (!dbUser) {
+        return res.status(404).json({
+          success: false,
+          error: 'No account found with this email. Please sign up first.',
+        });
+      }
+
+      if (dbUser.password && dbUser.password !== password) {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid password. Please check your credentials and try again.',
+        });
+      }
 
       user = {
-        id: `usr_${Date.now()}`,
-        name: formattedName,
-        email: normalizedEmail,
-        role: 'Team Member',
-        department: 'Operations',
-        initials,
-        createdAt: new Date().toISOString(),
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        initials: dbUser.initials,
+        createdAt: dbUser.createdAt,
       };
     }
 
@@ -121,7 +166,11 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
     res.json({
       success: true,
       user: {
-        ...user,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        initials: user.initials,
+        createdAt: user.createdAt,
         lastLogin: new Date().toISOString(),
       },
       token,

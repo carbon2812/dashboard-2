@@ -1,13 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, LoginCredentials } from '@/types';
+import { User, LoginCredentials, RegisterData } from '@/types';
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  signup: (data: RegisterData) => Promise<{ success: boolean; error?: string; message?: string }>;
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
@@ -16,35 +17,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_KEY_USER = 'expense_tracker_user';
 const STORAGE_KEY_TOKEN = 'expense_tracker_token';
+const STORAGE_KEY_REGISTERED = 'expense_tracker_registered_users';
 
-// Default demo users for client-side fallback
 const DEFAULT_FALLBACK_USERS: Record<string, User> = {
-  'admin@expensetracker.local': {
-    id: 'usr_admin',
-    name: 'Alex Morgan',
-    email: 'admin@expensetracker.local',
-    role: 'Executive Admin',
-    department: 'Executive Operations',
-    initials: 'AM',
+  'demo@example.com': {
+    id: 'usr_demo',
+    name: 'Demo User',
+    email: 'demo@example.com',
+    initials: 'DU',
     createdAt: '2026-01-01T00:00:00.000Z',
   },
-  'finance@expensetracker.local': {
-    id: 'usr_finance',
-    name: 'Sarah Jenkins',
-    email: 'finance@expensetracker.local',
-    role: 'Finance Director',
-    department: 'Finance & Treasury',
-    initials: 'SJ',
-    createdAt: '2026-01-15T00:00:00.000Z',
-  },
-  'analyst@expensetracker.local': {
-    id: 'usr_analyst',
-    name: 'David Chen',
-    email: 'analyst@expensetracker.local',
-    role: 'Senior Financial Analyst',
-    department: 'Financial Planning',
-    initials: 'DC',
-    createdAt: '2026-02-01T00:00:00.000Z',
+  'admin@expensetracker.local': {
+    id: 'usr_admin',
+    name: 'Admin User',
+    email: 'admin@expensetracker.local',
+    initials: 'AU',
+    createdAt: '2026-01-01T00:00:00.000Z',
   },
 };
 
@@ -70,12 +58,91 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // 1. User Sign Up (Account & Profile Creation)
+  const signup = async (data: RegisterData): Promise<{ success: boolean; error?: string; message?: string }> => {
+    try {
+      const { name, email, password } = data;
+      const normalizedEmail = email.trim().toLowerCase();
+
+      if (!name.trim()) return { success: false, error: 'Name is required' };
+      if (!normalizedEmail) return { success: false, error: 'Email address is required' };
+      if (!password || password.length < 4) {
+        return { success: false, error: 'Password must be at least 4 characters long' };
+      }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+
+      try {
+        const res = await fetch(`${apiUrl}/api/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name.trim(),
+            email: normalizedEmail,
+            password,
+          }),
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (res.ok && json?.success) {
+          return {
+            success: true,
+            message: json.message || 'Account created successfully! Please log in.',
+          };
+        } else if (json && json.error) {
+          return { success: false, error: json.error };
+        }
+      } catch (networkErr) {
+        console.info('Backend registration endpoint offline, using local client registry');
+      }
+
+      // Local fallback registry
+      const registeredStr = localStorage.getItem(STORAGE_KEY_REGISTERED);
+      const registeredList: any[] = registeredStr ? JSON.parse(registeredStr) : [];
+
+      if (
+        registeredList.some((u) => u.email.toLowerCase() === normalizedEmail) ||
+        DEFAULT_FALLBACK_USERS[normalizedEmail]
+      ) {
+        return { success: false, error: 'An account with this email already exists. Please log in.' };
+      }
+
+      const initials = name
+        .trim()
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase() || 'U';
+
+      const newUser = {
+        id: `usr_${Date.now()}`,
+        name: name.trim(),
+        email: normalizedEmail,
+        password,
+        initials,
+        createdAt: new Date().toISOString(),
+      };
+
+      registeredList.push(newUser);
+      localStorage.setItem(STORAGE_KEY_REGISTERED, JSON.stringify(registeredList));
+
+      return {
+        success: true,
+        message: 'Account created successfully! Please log in.',
+      };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Failed to create account.' };
+    }
+  };
+
+  // 2. User Log In (Enter Dashboard)
   const login = async (credentials: LoginCredentials): Promise<{ success: boolean; error?: string }> => {
     try {
       const { email, password } = credentials;
       const normalizedEmail = email.trim().toLowerCase();
 
-      // Try Backend API Login
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
       let serverUser: User | null = null;
       let sessionToken: string = '';
@@ -87,59 +154,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ email: normalizedEmail, password }),
         });
 
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && json.user) {
-            serverUser = json.user;
-            sessionToken = json.token || `tok_${Date.now()}`;
-          }
-        } else {
-          const errJson = await res.json().catch(() => null);
-          if (errJson && errJson.error) {
-            return { success: false, error: errJson.error };
-          }
+        const json = await res.json().catch(() => null);
+
+        if (res.ok && json?.success && json.user) {
+          serverUser = json.user;
+          sessionToken = json.token || `tok_${Date.now()}`;
+        } else if (json && json.error) {
+          return { success: false, error: json.error };
         }
       } catch (networkErr) {
-        // Fallback gracefully for local/mock credentials
         console.info('Backend auth endpoint unreachable, utilizing client verification fallback');
       }
 
-      // If backend didn't return user, check local fallback
+      // Fallback verification
       if (!serverUser) {
-        if (password.length < 4) {
-          return { success: false, error: 'Password must be at least 4 characters long' };
-        }
+        const registeredStr = localStorage.getItem(STORAGE_KEY_REGISTERED);
+        const registeredList: any[] = registeredStr ? JSON.parse(registeredStr) : [];
+        const localMatched = registeredList.find((u) => u.email.toLowerCase() === normalizedEmail);
 
-        const fallback = DEFAULT_FALLBACK_USERS[normalizedEmail];
-        if (fallback) {
-          serverUser = fallback;
-        } else {
-          const namePart = normalizedEmail.split('@')[0].replace(/[._-]/g, ' ');
-          const formattedName = namePart
-            .split(' ')
-            .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-            .join(' ') || 'Finance User';
-          const initials = formattedName
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .slice(0, 2)
-            .toUpperCase() || 'FU';
-
+        if (localMatched) {
+          if (localMatched.password !== password) {
+            return { success: false, error: 'Invalid password. Please try again.' };
+          }
           serverUser = {
-            id: `usr_${Date.now()}`,
-            name: formattedName,
-            email: normalizedEmail,
-            role: 'Team Member',
-            department: 'Operations',
-            initials,
-            createdAt: new Date().toISOString(),
+            id: localMatched.id,
+            name: localMatched.name,
+            email: localMatched.email,
+            initials: localMatched.initials,
+            createdAt: localMatched.createdAt,
           };
+          sessionToken = `tok_local_${Date.now()}`;
+        } else if (DEFAULT_FALLBACK_USERS[normalizedEmail]) {
+          serverUser = DEFAULT_FALLBACK_USERS[normalizedEmail];
+          sessionToken = `tok_demo_${Date.now()}`;
+        } else {
+          return { success: false, error: 'No account found with this email. Please sign up first.' };
         }
-        sessionToken = `tok_local_${Date.now()}`;
       }
 
-      // Persist session
+      // Save user session
       localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(serverUser));
       localStorage.setItem(STORAGE_KEY_TOKEN, sessionToken);
 
@@ -148,7 +201,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || 'An error occurred during sign in' };
+      return { success: false, error: err.message || 'An error occurred during log in' };
     }
   };
 
@@ -172,6 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         token,
         isAuthenticated: !!user,
         isLoading,
+        signup,
         login,
         logout,
       }}

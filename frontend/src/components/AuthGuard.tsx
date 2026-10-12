@@ -10,17 +10,17 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isLoginPage = pathname === '/login';
+  const isAuthRoute = pathname === '/login' || pathname === '/signup';
 
   useEffect(() => {
     if (isLoading) return;
 
-    if (!isAuthenticated && !isLoginPage) {
+    if (!isAuthenticated && !isAuthRoute) {
       router.replace('/login');
-    } else if (isAuthenticated && isLoginPage) {
+    } else if (isAuthenticated && isAuthRoute) {
       router.replace('/dashboard');
     }
-  }, [isAuthenticated, isLoading, isLoginPage, router]);
+  }, [isAuthenticated, isLoading, isAuthRoute, router]);
 
   // Loading state while checking localStorage session
   if (isLoading) {
@@ -32,11 +32,11 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           </div>
           <div className="space-y-1.5">
             <h2 className="text-sm font-semibold text-white tracking-wide">
-              Expense Tracker Portal
+              Expense Tracker
             </h2>
             <p className="text-xs text-slate-400 flex items-center justify-center gap-2">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400" />
-              <span>Verifying authorization...</span>
+              <span>Checking session...</span>
             </p>
           </div>
         </div>
@@ -45,7 +45,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Prevent flash of protected content before redirecting
-  if (!isAuthenticated && !isLoginPage) {
+  if (!isAuthenticated && !isAuthRoute) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
@@ -53,8 +53,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Prevent flash of login screen if already authenticated
-  if (isAuthenticated && isLoginPage) {
+  // Prevent flash of auth screens if already authenticated
+  if (isAuthenticated && isAuthRoute) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />

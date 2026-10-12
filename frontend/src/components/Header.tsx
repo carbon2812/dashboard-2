@@ -82,8 +82,8 @@ export function Header({
               <div className="text-xs font-semibold text-slate-800 leading-tight">
                 {user.name}
               </div>
-              <div className="text-[10px] text-slate-400 leading-none">
-                {user.role}
+              <div className="text-[10px] text-slate-400 leading-none truncate max-w-[130px]">
+                {user.email}
               </div>
             </div>
             <button

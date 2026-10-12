@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
   Lock,
@@ -9,27 +10,39 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
   HardDrive,
   Database,
   Layers,
   Sparkles,
+  CheckCircle2,
+  UserPlus,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
   const { error: toastError, success: toastSuccess } = useToast();
 
-  const [email, setEmail] = useState('admin@expensetracker.local');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Prefill email if redirected from signup
+  useEffect(() => {
+    const prefillEmail = searchParams.get('email');
+    if (prefillEmail) {
+      setEmail(prefillEmail);
+    } else {
+      setEmail('demo@example.com');
+      setPassword('demo123');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +58,7 @@ export default function LoginPage() {
     try {
       const result = await login({ email, password, rememberMe });
       if (result.success) {
-        toastSuccess('Welcome back! Entering Dashboard...');
+        toastSuccess('Login successful! Entering dashboard...');
         router.replace('/dashboard');
       } else {
         const err = result.error || 'Invalid email or password.';
@@ -69,7 +82,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between relative overflow-hidden font-sans select-none">
-      {/* Background Decorative Ambient Gradients */}
+      {/* Decorative Ambient Gradients */}
       <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600/20 blur-[130px] pointer-events-none" />
       <div className="absolute bottom-[-15%] right-[-10%] w-[550px] h-[550px] rounded-full bg-violet-600/15 blur-[140px] pointer-events-none" />
       <div className="absolute top-[40%] right-[25%] w-[350px] h-[350px] rounded-full bg-sky-500/10 blur-[120px] pointer-events-none" />
@@ -83,18 +96,18 @@ export default function LoginPage() {
           <div>
             <h1 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
               Expense Tracker
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                v2.0
-              </span>
             </h1>
-            <p className="text-[11px] text-slate-400">Corporate Finance Portal</p>
+            <p className="text-[11px] text-slate-400">Personal & Team Expense Ledger</p>
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 bg-slate-900/60 border border-slate-800/80 px-3 py-1.5 rounded-full backdrop-blur-md">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Local VPS Docker Protected</span>
-        </div>
+        <Link
+          href="/signup"
+          className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1.5 bg-slate-900/60 border border-slate-800/80 px-3.5 py-1.5 rounded-full backdrop-blur-md"
+        >
+          <UserPlus className="w-3.5 h-3.5" />
+          <span>New User? Create Account</span>
+        </Link>
       </header>
 
       {/* Main Login Card Section */}
@@ -111,13 +124,13 @@ export default function LoginPage() {
             <div className="space-y-2 text-center sm:text-left">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-medium mb-1">
                 <Sparkles className="w-3 h-3 text-indigo-400" />
-                <span>Authorized Access Only</span>
+                <span>Welcome Back</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                Sign in to Dashboard
+                Log In to Dashboard
               </h2>
               <p className="text-xs text-slate-400">
-                Access corporate financial ledger, analytics, and persistent receipt storage.
+                Enter your registered email and password to access your expenses.
               </p>
             </div>
 
@@ -137,9 +150,8 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-4">
               {/* Email Field */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
-                  <span>Corporate Email</span>
-                  <span className="text-[10px] text-slate-500">Work address</span>
+                <label className="text-xs font-semibold text-slate-300">
+                  Email Address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -150,7 +162,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@expensetracker.local"
+                    placeholder="name@example.com"
                     className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-950/60 border border-slate-800 text-white text-sm placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/60 transition-all font-sans"
                   />
                 </div>
@@ -201,7 +213,6 @@ export default function LoginPage() {
                   />
                   <span>Remember this session</span>
                 </label>
-                <span className="text-[11px] text-indigo-400 font-medium">SSL Encrypted</span>
               </div>
 
               {/* Submit Button */}
@@ -213,7 +224,7 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Authenticating...</span>
+                    <span>Logging in...</span>
                   </>
                 ) : (
                   <>
@@ -224,41 +235,54 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Quick Demo Access Pills */}
-            <div className="pt-2 border-t border-slate-800/80 space-y-3">
-              <div className="flex items-center justify-between text-[11px] text-slate-400">
-                <span>Quick 1-Click Demo Logins:</span>
-                <span className="text-slate-500">Click to autofill</span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo('admin@expensetracker.local', 'admin123')}
-                  className="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800/60 border border-slate-800 text-left transition-all group cursor-pointer"
+            {/* Link to Sign Up */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-4 text-center">
+              <p className="text-xs text-slate-400">
+                Don't have an account yet?{' '}
+                <Link
+                  href="/signup"
+                  className="text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-2 transition-colors"
                 >
-                  <div className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 flex items-center justify-between">
-                    <span>Executive Admin</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 opacity-60 group-hover:opacity-100" />
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
-                    admin@expensetracker.local
-                  </div>
-                </button>
+                  Create account (Sign Up)
+                </Link>
+              </p>
 
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo('finance@expensetracker.local', 'finance123')}
-                  className="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800/60 border border-slate-800 text-left transition-all group cursor-pointer"
-                >
-                  <div className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 flex items-center justify-between">
-                    <span>Finance Director</span>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 opacity-60 group-hover:opacity-100" />
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
-                    finance@expensetracker.local
-                  </div>
-                </button>
+              {/* Quick Demo Access Pills */}
+              <div className="pt-2 border-t border-slate-800/60">
+                <div className="flex items-center justify-between text-[11px] text-slate-400 mb-2">
+                  <span>Quick Demo Login:</span>
+                  <span className="text-slate-500">1-click fill</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemo('demo@example.com', 'demo123')}
+                    className="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800/60 border border-slate-800 text-left transition-all group cursor-pointer"
+                  >
+                    <div className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 flex items-center justify-between">
+                      <span>Demo User</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 opacity-60 group-hover:opacity-100" />
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
+                      demo@example.com
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemo('admin@expensetracker.local', 'admin123')}
+                    className="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800/60 border border-slate-800 text-left transition-all group cursor-pointer"
+                  >
+                    <div className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 flex items-center justify-between">
+                      <span>Admin</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 opacity-60 group-hover:opacity-100" />
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
+                      admin@expensetracker.local
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -279,7 +303,7 @@ export default function LoginPage() {
           </span>
         </div>
         <p className="text-[11px] text-slate-500">
-          Expense Tracker Enterprise • Protected Session
+          Expense Tracker • Simple & Secure
         </p>
       </footer>
     </div>

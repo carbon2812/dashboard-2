@@ -118,8 +118,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
-  department: string;
+  role?: string;
+  department?: string;
   avatar?: string;
   initials: string;
   createdAt: string;
@@ -140,8 +140,6 @@ export interface RegisterData {
   name: string;
   email: string;
   password: string;
-  role?: UserRole;
-  department?: string;
 }
 
 export interface AuthResponse {

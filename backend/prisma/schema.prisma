@@ -55,3 +55,17 @@ model Attachment {
 
   @@map("attachments")
 }
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  password   String
+  role       String   @default("Team Member")
+  department String   @default("Operations")
+  initials   String   @default("TM")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("users")
+}

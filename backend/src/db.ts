@@ -781,3 +781,102 @@ export async function resetDemoData(): Promise<void> {
   };
   saveDataFile(initial);
 }
+
+// -------------------------------------------------------------
+// User Authentication Database Persistence (PostgreSQL + Local File)
+// -------------------------------------------------------------
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+
+function loadUsersFile(): any[] {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    if (!fs.existsSync(USERS_FILE)) {
+      fs.writeFileSync(USERS_FILE, '[]', 'utf-8');
+      return [];
+    }
+    const raw = fs.readFileSync(USERS_FILE, 'utf-8');
+    return JSON.parse(raw) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveUsersFile(users: any[]) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Error saving users file:', e);
+  }
+}
+
+export async function findUserByEmail(email: string): Promise<any | null> {
+  const normalized = email.trim().toLowerCase();
+  if (await isPrismaAvailable()) {
+    try {
+      const u = await prisma.user.findUnique({
+        where: { email: normalized },
+      });
+      if (u) return u;
+    } catch (err) {
+      console.warn('Prisma findUserByEmail fallback:', err);
+    }
+  }
+
+  const fileUsers = loadUsersFile();
+  return fileUsers.find((u: any) => u.email.toLowerCase() === normalized) || null;
+}
+
+export async function createUser(input: {
+  name: string;
+  email: string;
+  password: string;
+  role?: string;
+  department?: string;
+  initials?: string;
+}): Promise<any> {
+  const normalized = input.email.trim().toLowerCase();
+  const initials =
+    input.initials ||
+    input.name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() ||
+    'TM';
+
+  if (await isPrismaAvailable()) {
+    try {
+      const created = await prisma.user.create({
+        data: {
+          name: input.name,
+          email: normalized,
+          password: input.password,
+          role: input.role || 'Team Member',
+          department: input.department || 'Operations',
+          initials,
+        },
+      });
+      return created;
+    } catch (err) {
+      console.warn('Prisma createUser fallback:', err);
+    }
+  }
+
+  const fileUsers = loadUsersFile();
+  const newUser = {
+    id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    name: input.name,
+    email: normalized,
+    password: input.password,
+    role: input.role || 'Team Member',
+    department: input.department || 'Operations',
+    initials,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  fileUsers.push(newUser);
+  saveUsersFile(fileUsers);
+  return newUser;
+}
