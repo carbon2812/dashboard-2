@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
+import multer from 'multer';
 import {
   getCategories,
   createCategory,
@@ -14,9 +15,9 @@ import {
   deleteExpense,
   getDashboardStats,
   resetDemoData,
-} from '../src/lib/db';
-import { getCloudinaryStatus } from '../src/lib/cloudinary';
-import { swaggerSpec } from '../src/lib/swagger';
+} from './db';
+import { getCloudinaryStatus, uploadReceipt, isCloudinaryConfigured } from './cloudinary';
+import { swaggerSpec } from './swagger';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
@@ -24,16 +25,22 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Configure file upload with 15MB limit
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 },
+});
+
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads')));
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
+  res.json({ status: 'ok', service: 'Expense Tracker Express API', time: new Date().toISOString() });
 });
 
-// Categories
+// Categories Endpoints
 app.get('/api/categories', async (req: Request, res: Response) => {
   try {
     const categories = await getCategories();
@@ -74,13 +81,13 @@ app.delete('/api/categories/:id', async (req: Request, res: Response) => {
   try {
     const deleted = await deleteCategory(req.params.id);
     if (!deleted) return res.status(404).json({ success: false, error: 'Category not found' });
-    res.json({ success: true, message: 'Deleted' });
+    res.json({ success: true, message: 'Category deleted successfully' });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Expenses
+// Expenses Endpoints
 app.get('/api/expenses', async (req: Request, res: Response) => {
   try {
     const filters: any = {
@@ -97,6 +104,16 @@ app.get('/api/expenses', async (req: Request, res: Response) => {
     };
     const expenses = await getExpenses(filters);
     res.json({ success: true, count: expenses.length, data: expenses });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/expenses/:id', async (req: Request, res: Response) => {
+  try {
+    const expense = await getExpenseById(req.params.id);
+    if (!expense) return res.status(404).json({ success: false, error: 'Expense not found' });
+    res.json({ success: true, data: expense });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -139,13 +156,13 @@ app.delete('/api/expenses/:id', async (req: Request, res: Response) => {
   try {
     const deleted = await deleteExpense(req.params.id);
     if (!deleted) return res.status(404).json({ success: false, error: 'Expense not found' });
-    res.json({ success: true, message: 'Expense deleted' });
+    res.json({ success: true, message: 'Expense deleted successfully' });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Stats & Drive
+// Stats & Aggregations
 app.get('/api/stats', async (req: Request, res: Response) => {
   try {
     const stats = await getDashboardStats();
@@ -155,10 +172,43 @@ app.get('/api/stats', async (req: Request, res: Response) => {
   }
 });
 
+// Cloudinary Storage Health Status
 app.get('/api/cloudinary/status', (req: Request, res: Response) => {
   try {
     const status = getCloudinaryStatus();
     res.json({ success: true, data: status });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Bill Receipt File Upload
+app.post('/api/upload', upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, error: 'No file provided in form data' });
+    }
+
+    const attachment = await uploadReceipt(file.buffer, file.originalname, file.mimetype);
+    const storageProvider = isCloudinaryConfigured() ? 'Cloudinary CDN' : 'Local Storage';
+
+    res.json({
+      success: true,
+      data: attachment,
+      message: `Bill uploaded to ${storageProvider} successfully`,
+    });
+  } catch (err: any) {
+    console.error('Backend upload error:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to upload bill attachment' });
+  }
+});
+
+// Reset Demo Data
+app.post('/api/reset', async (req: Request, res: Response) => {
+  try {
+    await resetDemoData();
+    res.json({ success: true, message: 'All expenses cleared from database.' });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -169,6 +219,19 @@ app.get(['/api/docs', '/api/swagger.json'], (req: Request, res: Response) => {
   res.json(swaggerSpec);
 });
 
-app.listen(PORT, () => {
-  console.log(`Fintech Dashboard Express Server running on port ${PORT}`);
-});
+function startServer(port: number) {
+  const server = app.listen(port, () => {
+    console.log(`Expense Tracker Backend Express Server running on port ${port}`);
+  });
+
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`Port ${port} in use, trying port ${port + 1}...`);
+      startServer(port + 1);
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+}
+
+startServer(Number(PORT) || 5001);

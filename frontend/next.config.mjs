@@ -5,11 +5,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'drive.google.com',
+        hostname: 'res.cloudinary.com',
       },
       {
         protocol: 'https',
@@ -17,8 +13,13 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose'],
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.BACKEND_API_URL || 'http://localhost:5001'}/api/:path*`,
+      },
+    ];
   },
 };
 

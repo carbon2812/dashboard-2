@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import path from 'path';
-import { ExpenseAttachment, CloudinaryStatus } from '@/types';
+import { ExpenseAttachment, CloudinaryStatus } from './types';
 
 export function getCloudinaryCredentials() {
   let cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'rgukte0l';

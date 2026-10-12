@@ -9,7 +9,7 @@ import {
   CategoryBreakdownItem,
   MonthlyTrendItem,
   WeeklyTrendItem,
-} from '@/types';
+} from './types';
 
 export { prisma };
 
@@ -90,7 +90,7 @@ const DEFAULT_CATEGORIES: ExpenseCategory[] = [
 const DEFAULT_EXPENSES: Expense[] = [];
 
 // Persistent File Store path
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = path.join(__dirname, '..', 'data');
 const LOCAL_DB_FILE = path.join(DATA_DIR, 'db.json');
 const DB_FILE = process.env.VERCEL ? path.join('/tmp', 'db.json') : LOCAL_DB_FILE;
 
