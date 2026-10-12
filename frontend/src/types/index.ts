@@ -29,8 +29,6 @@ export interface StorageStatus {
   message?: string;
 }
 
-export type CloudinaryStatus = StorageStatus;
-
 export type PaymentMethod = 'Corporate Card' | 'Wire Transfer' | 'ACH' | 'Reimbursement' | 'Petty Cash';
 export type ExpenseStatus = 'Approved' | 'Pending Review' | 'Flagged';
 

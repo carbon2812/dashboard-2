@@ -98,7 +98,7 @@ export const swaggerSpec = {
       post: {
         tags: ['Expenses'],
         summary: 'Record New Expense',
-        description: 'Creates a new financial disbursement record with amount, category, merchant, and optional Cloudinary bill attachment.',
+        description: 'Creates a new financial disbursement record with amount, category, merchant, and optional bill attachment.',
         requestBody: {
           required: true,
           content: {
@@ -553,12 +553,10 @@ export const swaggerSpec = {
           name: { type: 'string', example: 'aws_invoice_october.pdf' },
           mimeType: { type: 'string', example: 'application/pdf' },
           size: { type: 'integer', example: 1048576, description: 'File size in bytes' },
-          cloudinaryPublicId: { type: 'string', example: 'expense-tracker/receipts/1791821844_aws_invoice' },
-          cloudinaryUrl: { type: 'string', example: 'https://res.cloudinary.com/rgukte0l/image/upload/v1/aws.pdf' },
-          driveViewLink: { type: 'string', example: 'https://res.cloudinary.com/rgukte0l/image/upload/v1/aws.pdf' },
-          driveDownloadLink: { type: 'string', example: 'https://res.cloudinary.com/rgukte0l/image/upload/v1/aws.pdf' },
-          thumbnailUrl: { type: 'string', example: 'https://res.cloudinary.com/rgukte0l/image/upload/c_fill,h_400,w_400/aws.jpg' },
-          localUrl: { type: 'string', example: '/uploads/1791821844_aws_invoice.pdf' },
+          url: { type: 'string', example: '/uploads/aws_invoice_october-1791838631007-621403032.pdf' },
+          filename: { type: 'string', example: 'aws_invoice_october-1791838631007-621403032.pdf' },
+          thumbnailUrl: { type: 'string', example: '/uploads/aws_invoice_october-1791838631007-621403032.pdf' },
+          localUrl: { type: 'string', example: '/uploads/aws_invoice_october-1791838631007-621403032.pdf' },
         },
       },
       Expense: {
@@ -648,13 +646,19 @@ export const swaggerSpec = {
           },
         },
       },
-      CloudinaryStatus: {
+      StorageStatus: {
         type: 'object',
         properties: {
-          connected: { type: 'boolean', example: false },
-          cloudName: { type: 'string', example: 'rgukte0l' },
-          apiKey: { type: 'string', example: '••••••••6291' },
-          message: { type: 'string', example: 'Cloudinary cloud credentials active' },
+          provider: { type: 'string', example: 'VPS Local Storage' },
+          uploadDir: { type: 'string', example: 'backend/uploads/' },
+          maxFileSize: { type: 'string', example: '10MB' },
+          allowedTypes: {
+            type: 'array',
+            items: { type: 'string' },
+            example: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+          },
+          totalFiles: { type: 'integer', example: 12 },
+          message: { type: 'string', example: 'VPS Local Disk Storage is active and persistent via Docker volume' },
         },
       },
       ErrorResponse: {

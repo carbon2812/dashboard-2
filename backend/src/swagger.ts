@@ -98,7 +98,7 @@ export const swaggerSpec = {
       post: {
         tags: ['Expenses'],
         summary: 'Record New Expense',
-        description: 'Creates a new financial disbursement record with amount, category, merchant, and optional Cloudinary bill attachment.',
+        description: 'Creates a new financial disbursement record with amount, category, merchant, and optional bill attachment.',
         requestBody: {
           required: true,
           content: {

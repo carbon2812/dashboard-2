@@ -170,7 +170,7 @@ app.get('/api/stats', async (req: Request, res: Response) => {
 });
 
 // VPS Local Storage Health & Diagnostics Status
-app.get(['/api/storage/status', '/api/cloudinary/status'], (req: Request, res: Response) => {
+app.get('/api/storage/status', (req: Request, res: Response) => {
   try {
     const files = fs.existsSync(UPLOAD_DIR)
       ? fs.readdirSync(UPLOAD_DIR).filter((f) => f !== '.gitkeep')

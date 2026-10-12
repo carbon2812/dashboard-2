@@ -366,7 +366,7 @@ export function AddExpenseModal({
               />
             </div>
 
-            {/* Bill Attachment / Cloudinary Drag & Drop Zone */}
+            {/* Bill Attachment / VPS Storage Drag & Drop Zone */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-slate-700">

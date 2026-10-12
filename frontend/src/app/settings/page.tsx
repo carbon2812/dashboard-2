@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import { CloudinaryStatus } from '@/types';
+import { StorageStatus } from '@/types';
 import { useToast } from '@/context/ToastContext';
 
 export default function SettingsPage() {
@@ -106,14 +106,14 @@ export default function SettingsPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <Header
           title="System Settings"
-          subtitle="Manage corporate profile, Cloudinary media storage, and data preferences"
+          subtitle="Manage corporate profile, VPS local storage, and data preferences"
           onMobileMenuToggle={() => setMobileMenuOpen((prev) => !prev)}
           onQuickAdd={() => {}}
         />
 
         <main className="flex-1 p-6 sm:p-8 space-y-8 max-w-4xl mx-auto w-full">
 
-          {/* Section 1: Cloudinary Media Storage Integration */}
+          {/* Section 1: VPS Local Storage Integration */}
           <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-card space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
               <div className="flex items-center gap-3.5">
