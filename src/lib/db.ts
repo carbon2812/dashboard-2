@@ -276,7 +276,8 @@ const DEFAULT_EXPENSES: Expense[] = [
 
 // Persistent File Store path
 const DATA_DIR = path.join(process.cwd(), 'data');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
+const LOCAL_DB_FILE = path.join(DATA_DIR, 'db.json');
+const DB_FILE = process.env.VERCEL ? path.join('/tmp', 'db.json') : LOCAL_DB_FILE;
 
 interface LocalDBData {
   categories: ExpenseCategory[];
@@ -285,7 +286,13 @@ interface LocalDBData {
 
 function ensureDataFile(): LocalDBData {
   try {
-    if (!fs.existsSync(DATA_DIR)) {
+    if (process.env.VERCEL && !fs.existsSync(DB_FILE)) {
+      if (fs.existsSync(LOCAL_DB_FILE)) {
+        fs.copyFileSync(LOCAL_DB_FILE, DB_FILE);
+      }
+    }
+
+    if (!process.env.VERCEL && !fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
 
@@ -311,7 +318,7 @@ function ensureDataFile(): LocalDBData {
 
 function saveDataFile(data: LocalDBData) {
   try {
-    if (!fs.existsSync(DATA_DIR)) {
+    if (!process.env.VERCEL && !fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
