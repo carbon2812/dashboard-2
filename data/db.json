@@ -1,0 +1,263 @@
+{
+  "categories": [
+    {
+      "id": "cat_tech",
+      "name": "Tech & SaaS",
+      "color": "#6366f1",
+      "icon": "Laptop",
+      "description": "Cloud infrastructure, software licenses, developer tooling",
+      "budget": 550000,
+      "isDefault": true,
+      "createdAt": "2026-01-15T09:00:00.000Z"
+    },
+    {
+      "id": "cat_marketing",
+      "name": "Marketing & Ads",
+      "color": "#f43f5e",
+      "icon": "Megaphone",
+      "description": "Paid acquisition, design assets, brand sponsorship",
+      "budget": 680000,
+      "isDefault": true,
+      "createdAt": "2026-01-15T09:00:00.000Z"
+    },
+    {
+      "id": "cat_travel",
+      "name": "Business Travel",
+      "color": "#0ea5e9",
+      "icon": "Plane",
+      "description": "Flights, hotel lodging, client on-site visits",
+      "budget": 380000,
+      "isDefault": true,
+      "createdAt": "2026-01-15T09:00:00.000Z"
+    },
+    {
+      "id": "cat_office",
+      "name": "Office & Facilities",
+      "color": "#10b981",
+      "icon": "Building2",
+      "description": "Workspace lease, high-speed fiber, office supplies",
+      "budget": 290000,
+      "isDefault": true,
+      "createdAt": "2026-01-15T09:00:00.000Z"
+    },
+    {
+      "id": "cat_client",
+      "name": "Client Entertainment",
+      "color": "#f59e0b",
+      "icon": "Wine",
+      "description": "Executive dinners, partnership networking events",
+      "budget": 180000,
+      "isDefault": true,
+      "createdAt": "2026-01-15T09:00:00.000Z"
+    },
+    {
+      "id": "cat_legal",
+      "name": "Legal & Compliance",
+      "color": "#8b5cf6",
+      "icon": "FileText",
+      "description": "Corporate filings, audit, patent attorneys",
+      "budget": 320000,
+      "isDefault": true,
+      "createdAt": "2026-01-15T09:00:00.000Z"
+    },
+    {
+      "id": "cat_transport",
+      "name": "Logistics & Transport",
+      "color": "#64748b",
+      "icon": "Car",
+      "description": "Courier services, ground transportation, fuel",
+      "budget": 95000,
+      "isDefault": true,
+      "createdAt": "2026-01-15T09:00:00.000Z"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "exp_01",
+      "amount": 248000,
+      "currency": "INR",
+      "categoryId": "cat_tech",
+      "date": "2026-10-10",
+      "description": "Amazon Web Services Production Cluster & RDS Postgres Hosting",
+      "merchant": "AWS Cloud Services",
+      "paymentMethod": "Corporate Card",
+      "status": "Approved",
+      "attachment": {
+        "id": "att_aws",
+        "name": "AWS-Invoice-May2026-INV-99321.pdf",
+        "mimeType": "application/pdf",
+        "size": 245760,
+        "driveFileId": "1aBcD_aws_invoice_sample_drive_id",
+        "driveViewLink": "https://drive.google.com/file/d/sample-aws-invoice",
+        "driveDownloadLink": "https://drive.google.com/uc?export=download&id=sample-aws",
+        "localUrl": "/uploads/sample-invoice.pdf"
+      },
+      "createdAt": "2026-10-10T22:07:13.940Z",
+      "updatedAt": "2026-10-10T22:07:13.940Z"
+    },
+    {
+      "id": "exp_02",
+      "amount": 142050,
+      "currency": "INR",
+      "categoryId": "cat_travel",
+      "date": "2026-10-09",
+      "description": "Roundtrip Flights to San Francisco for Fintech Summit 2026",
+      "merchant": "Delta Air Lines",
+      "paymentMethod": "Corporate Card",
+      "status": "Approved",
+      "attachment": {
+        "id": "att_delta",
+        "name": "Delta-Flight-Ticket-DL4402.png",
+        "mimeType": "image/png",
+        "size": 420100,
+        "driveFileId": "1dEfG_delta_boarding_pass_drive_id",
+        "driveViewLink": "https://drive.google.com/file/d/sample-delta",
+        "driveDownloadLink": "https://drive.google.com/uc?export=download&id=sample-delta",
+        "thumbnailUrl": "https://images.unsplash.com/photo-1540339832862-474599807836?w=400&auto=format&fit=crop&q=80",
+        "localUrl": "https://images.unsplash.com/photo-1540339832862-474599807836?w=800&auto=format&fit=crop&q=80"
+      },
+      "createdAt": "2026-10-09T22:07:13.940Z",
+      "updatedAt": "2026-10-09T22:07:13.940Z"
+    },
+    {
+      "id": "exp_03",
+      "amount": 320000,
+      "currency": "INR",
+      "categoryId": "cat_marketing",
+      "date": "2026-10-08",
+      "description": "Google Ads Paid Search & Retargeting Campaign Q2",
+      "merchant": "Google Ads EMEA",
+      "paymentMethod": "ACH",
+      "status": "Approved",
+      "attachment": {
+        "id": "att_gads",
+        "name": "Google-Ads-Statement-May.pdf",
+        "mimeType": "application/pdf",
+        "size": 312000,
+        "driveFileId": "1gHiJ_gads_receipt_drive_id",
+        "driveViewLink": "https://drive.google.com/file/d/sample-gads",
+        "driveDownloadLink": "https://drive.google.com/uc?export=download&id=sample-gads",
+        "localUrl": "/uploads/sample-invoice.pdf"
+      },
+      "createdAt": "2026-10-08T22:07:13.940Z",
+      "updatedAt": "2026-10-08T22:07:13.940Z"
+    },
+    {
+      "id": "exp_04",
+      "amount": 85075,
+      "currency": "INR",
+      "categoryId": "cat_client",
+      "date": "2026-10-07",
+      "description": "Strategic Investor Dinner & Client Welcome Tasting Menu",
+      "merchant": "Nobu Downtown NYC",
+      "paymentMethod": "Corporate Card",
+      "status": "Approved",
+      "attachment": {
+        "id": "att_nobu",
+        "name": "Nobu-Dinner-Receipt-May08.jpg",
+        "mimeType": "image/jpeg",
+        "size": 512400,
+        "driveFileId": "1jKlM_nobu_receipt_drive_id",
+        "driveViewLink": "https://drive.google.com/file/d/sample-nobu",
+        "driveDownloadLink": "https://drive.google.com/uc?export=download&id=sample-nobu",
+        "thumbnailUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&auto=format&fit=crop&q=80",
+        "localUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80"
+      },
+      "createdAt": "2026-10-07T22:07:13.940Z",
+      "updatedAt": "2026-10-07T22:07:13.940Z"
+    },
+    {
+      "id": "exp_05",
+      "amount": 195000,
+      "currency": "INR",
+      "categoryId": "cat_office",
+      "date": "2026-10-05",
+      "description": "Dedicated Private Office Lease & Enterprise Fiber Connectivity",
+      "merchant": "WeWork Global Spaces",
+      "paymentMethod": "Wire Transfer",
+      "status": "Approved",
+      "attachment": {
+        "id": "att_wework",
+        "name": "WeWork-Space-Agreement.docx",
+        "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "size": 154000,
+        "driveFileId": "1nOpQ_wework_contract_drive_id",
+        "driveViewLink": "https://drive.google.com/file/d/sample-wework",
+        "driveDownloadLink": "https://drive.google.com/uc?export=download&id=sample-wework",
+        "localUrl": "/uploads/sample-contract.docx"
+      },
+      "createdAt": "2026-10-05T22:07:13.940Z",
+      "updatedAt": "2026-10-05T22:07:13.940Z"
+    },
+    {
+      "id": "exp_06",
+      "amount": 45000,
+      "currency": "INR",
+      "categoryId": "cat_tech",
+      "date": "2026-10-03",
+      "description": "Figma Organization Seats & FigJam Team License Renewal",
+      "merchant": "Figma Inc.",
+      "paymentMethod": "Corporate Card",
+      "status": "Approved",
+      "attachment": {
+        "id": "att_figma",
+        "name": "Figma-Renewal-Invoice-2026.pdf",
+        "mimeType": "application/pdf",
+        "size": 182000,
+        "driveFileId": "1qRsT_figma_invoice_drive_id",
+        "driveViewLink": "https://drive.google.com/file/d/sample-figma",
+        "driveDownloadLink": "https://drive.google.com/uc?export=download&id=sample-figma",
+        "localUrl": "/uploads/sample-invoice.pdf"
+      },
+      "createdAt": "2026-10-03T22:07:13.940Z",
+      "updatedAt": "2026-10-03T22:07:13.940Z"
+    },
+    {
+      "id": "exp_07",
+      "amount": 185000,
+      "currency": "INR",
+      "categoryId": "cat_legal",
+      "date": "2026-09-30",
+      "description": "Q2 Compliance Review & FinTech Regulation Filing Counsel",
+      "merchant": "Wilson Sonsini Goodrich & Rosati",
+      "paymentMethod": "Wire Transfer",
+      "status": "Approved",
+      "attachment": {
+        "id": "att_legal_counsel",
+        "name": "WSGR-Retainer-Billing-May.pdf",
+        "mimeType": "application/pdf",
+        "size": 610000,
+        "driveFileId": "1uVwX_legal_bill_drive_id",
+        "driveViewLink": "https://drive.google.com/file/d/sample-wsgr",
+        "driveDownloadLink": "https://drive.google.com/uc?export=download&id=sample-wsgr",
+        "localUrl": "/uploads/sample-invoice.pdf"
+      },
+      "createdAt": "2026-09-30T22:07:13.940Z",
+      "updatedAt": "2026-09-30T22:07:13.940Z"
+    },
+    {
+      "id": "exp_08",
+      "amount": 14520,
+      "currency": "INR",
+      "categoryId": "cat_transport",
+      "date": "2026-09-29",
+      "description": "Executive Airport Transit & Meeting Transfers",
+      "merchant": "Uber for Business",
+      "paymentMethod": "Corporate Card",
+      "status": "Approved",
+      "attachment": {
+        "id": "att_uber",
+        "name": "Uber-Business-Receipt-May02.png",
+        "mimeType": "image/png",
+        "size": 290000,
+        "driveFileId": "1yZaB_uber_receipt_drive_id",
+        "driveViewLink": "https://drive.google.com/file/d/sample-uber",
+        "driveDownloadLink": "https://drive.google.com/uc?export=download&id=sample-uber",
+        "thumbnailUrl": "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&auto=format&fit=crop&q=80",
+        "localUrl": "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&auto=format&fit=crop&q=80"
+      },
+      "createdAt": "2026-09-29T22:07:13.940Z",
+      "updatedAt": "2026-09-29T22:07:13.940Z"
+    }
+  ]
+}
