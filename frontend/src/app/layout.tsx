@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/context/ToastContext';
+import { AuthProvider } from '@/context/AuthContext';
+import { AuthGuard } from '@/components/AuthGuard';
 
 export const metadata: Metadata = {
   title: 'Expense Tracker',
@@ -19,7 +21,11 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
         <ToastProvider>
-          {children}
+          <AuthProvider>
+            <AuthGuard>
+              {children}
+            </AuthGuard>
+          </AuthProvider>
         </ToastProvider>
       </body>
     </html>

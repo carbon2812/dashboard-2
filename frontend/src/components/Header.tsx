@@ -8,8 +8,11 @@ import {
   UploadCloud,
   Calendar,
   Sparkles,
+  LogOut,
+  User as UserIcon,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
@@ -24,6 +27,7 @@ export function Header({
   title = 'Overview',
   subtitle = 'Monitor and manage corporate financial disbursements',
 }: HeaderProps) {
+  const { user, logout } = useAuth();
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -68,17 +72,40 @@ export function Header({
           <span className="w-2 h-2 rounded-full bg-emerald-500" />
         </Link>
 
-        {/* Workspace Quick Link */}
-        <Link
-          href="/settings"
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-xs font-semibold text-slate-700 transition-colors"
-          title="Expense Tracker Workspace Settings"
-        >
-          <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center">
-            ET
+        {/* User Session & Logout Action */}
+        {user ? (
+          <div className="flex items-center gap-2 pl-1 pr-1.5 py-1 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center shadow-xs">
+              {user.initials || 'U'}
+            </div>
+            <div className="hidden md:block text-left pr-1">
+              <div className="text-xs font-semibold text-slate-800 leading-tight">
+                {user.name}
+              </div>
+              <div className="text-[10px] text-slate-400 leading-none">
+                {user.role}
+              </div>
+            </div>
+            <button
+              onClick={logout}
+              title="Sign out of portal"
+              className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors ml-0.5 cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           </div>
-          <span className="hidden xl:inline">Workspace</span>
-        </Link>
+        ) : (
+          <Link
+            href="/settings"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-xs font-semibold text-slate-700 transition-colors"
+            title="Expense Tracker Workspace Settings"
+          >
+            <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center">
+              ET
+            </div>
+            <span className="hidden xl:inline">Workspace</span>
+          </Link>
+        )}
 
         {/* Quick Add Expense Action */}
         <button

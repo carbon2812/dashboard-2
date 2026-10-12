@@ -37,6 +37,117 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', service: 'Expense Tracker Express API', time: new Date().toISOString() });
 });
 
+// -------------------------------------------------------------
+// Authentication Endpoints (Corporate Portal Access)
+// -------------------------------------------------------------
+const DEMO_USERS: Record<string, any> = {
+  'admin@expensetracker.local': {
+    id: 'usr_admin',
+    name: 'Alex Morgan',
+    email: 'admin@expensetracker.local',
+    role: 'Executive Admin',
+    department: 'Executive Operations',
+    initials: 'AM',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  'finance@expensetracker.local': {
+    id: 'usr_finance',
+    name: 'Sarah Jenkins',
+    email: 'finance@expensetracker.local',
+    role: 'Finance Director',
+    department: 'Finance & Treasury',
+    initials: 'SJ',
+    createdAt: '2026-01-15T00:00:00.000Z',
+  },
+  'analyst@expensetracker.local': {
+    id: 'usr_analyst',
+    name: 'David Chen',
+    email: 'analyst@expensetracker.local',
+    role: 'Senior Financial Analyst',
+    department: 'Financial Planning',
+    initials: 'DC',
+    createdAt: '2026-02-01T00:00:00.000Z',
+  },
+};
+
+app.post('/api/auth/login', (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email and password are required',
+      });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    
+    // Check known demo accounts
+    let user = DEMO_USERS[normalizedEmail];
+    
+    // If not a pre-registered demo account, allow standard valid credentials
+    if (!user) {
+      if (password.length < 4) {
+        return res.status(401).json({
+          success: false,
+          error: 'Password must be at least 4 characters long',
+        });
+      }
+      const namePart = normalizedEmail.split('@')[0].replace(/[._-]/g, ' ');
+      const formattedName = namePart
+        .split(' ')
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(' ') || 'Finance User';
+      const initials = formattedName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase() || 'FU';
+
+      user = {
+        id: `usr_${Date.now()}`,
+        name: formattedName,
+        email: normalizedEmail,
+        role: 'Team Member',
+        department: 'Operations',
+        initials,
+        createdAt: new Date().toISOString(),
+      };
+    }
+
+    const token = `tok_${Buffer.from(`${user.id}:${Date.now()}`).toString('base64')}`;
+
+    res.json({
+      success: true,
+      user: {
+        ...user,
+        lastLogin: new Date().toISOString(),
+      },
+      token,
+      message: 'Login successful',
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/auth/me', (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+  // Return default active corporate profile
+  res.json({
+    success: true,
+    user: DEMO_USERS['admin@expensetracker.local'],
+  });
+});
+
+app.post('/api/auth/logout', (req: Request, res: Response) => {
+  res.json({ success: true, message: 'Logged out successfully' });
+});
+
 // Categories Endpoints
 app.get('/api/categories', async (req: Request, res: Response) => {
   try {
