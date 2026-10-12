@@ -4,7 +4,7 @@ import { ToastProvider } from '@/context/ToastContext';
 import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
-  title: 'Nova | Fintech Expense Management Dashboard',
+  title: ' | Fintech Expense Management Dashboard',
   description: 'Modern, high-performance corporate expense management with Google Drive bill synchronization and custom category intelligence.',
 };
 
