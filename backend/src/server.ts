@@ -15,7 +15,7 @@ import {
   updateExpense,
   deleteExpense,
   getDashboardStats,
-  resetDemoData,
+  resetExpenseData,
   findUserByEmail,
   createUser,
 } from './db';
@@ -40,26 +40,8 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // -------------------------------------------------------------
-// Authentication Endpoints (Simple Sign Up & Log In - No Roles)
+// Authentication Endpoints (Simple Sign Up & Log In)
 // -------------------------------------------------------------
-const DEMO_USERS: Record<string, any> = {
-  'demo@example.com': {
-    id: 'usr_demo',
-    name: 'Demo User',
-    email: 'demo@example.com',
-    password: 'demo123',
-    initials: 'DU',
-    createdAt: '2026-01-01T00:00:00.000Z',
-  },
-  'admin@expensetracker.local': {
-    id: 'usr_admin',
-    name: 'Admin User',
-    email: 'admin@expensetracker.local',
-    password: 'admin123',
-    initials: 'AU',
-    createdAt: '2026-01-01T00:00:00.000Z',
-  },
-};
 
 // 1. Sign Up Endpoint
 app.post(['/api/auth/signup', '/api/auth/register'], async (req: Request, res: Response) => {
@@ -83,7 +65,7 @@ app.post(['/api/auth/signup', '/api/auth/register'], async (req: Request, res: R
 
     // Check if user already exists
     const existing = await findUserByEmail(normalizedEmail);
-    if (existing || DEMO_USERS[normalizedEmail]) {
+    if (existing) {
       return res.status(400).json({
         success: false,
         error: 'An account with this email already exists. Please log in.',
@@ -124,42 +106,30 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    
-    // Check demo accounts
-    let user = DEMO_USERS[normalizedEmail];
 
-    if (user) {
-      if (password !== user.password) {
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid password. For demo account use demo123 or admin123',
-        });
-      }
-    } else {
-      // Check registered accounts in database
-      const dbUser = await findUserByEmail(normalizedEmail);
-      if (!dbUser) {
-        return res.status(404).json({
-          success: false,
-          error: 'No account found with this email. Please sign up first.',
-        });
-      }
-
-      if (dbUser.password && dbUser.password !== password) {
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid password. Please check your credentials and try again.',
-        });
-      }
-
-      user = {
-        id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
-        initials: dbUser.initials,
-        createdAt: dbUser.createdAt,
-      };
+    // Check registered accounts in database
+    const dbUser = await findUserByEmail(normalizedEmail);
+    if (!dbUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'No account found with this email. Please sign up first.',
+      });
     }
+
+    if (dbUser.password && dbUser.password !== password) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid password. Please check your credentials and try again.',
+      });
+    }
+
+    const user = {
+      id: dbUser.id,
+      name: dbUser.name,
+      email: dbUser.email,
+      initials: dbUser.initials,
+      createdAt: dbUser.createdAt,
+    };
 
     const token = `tok_${Buffer.from(`${user.id}:${Date.now()}`).toString('base64')}`;
 
@@ -186,11 +156,7 @@ app.get('/api/auth/me', (req: Request, res: Response) => {
   if (!authHeader) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
-  // Return default active corporate profile
-  res.json({
-    success: true,
-    user: DEMO_USERS['admin@expensetracker.local'],
-  });
+  res.json({ success: true, message: 'Authenticated' });
 });
 
 app.post('/api/auth/logout', (req: Request, res: Response) => {
@@ -390,10 +356,10 @@ app.post('/api/upload', (req: Request, res: Response) => {
   });
 });
 
-// Reset Demo Data
+// Clear/Reset Expenses
 app.post('/api/reset', async (req: Request, res: Response) => {
   try {
-    await resetDemoData();
+    await resetExpenseData();
     res.json({ success: true, message: 'All expenses cleared from database.' });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });

@@ -381,8 +381,8 @@ export default function SettingsPage() {
                 <Database className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Database & Demo Data Management</h3>
-                <p className="text-xs text-slate-500">Restore pre-seeded fintech data or clear test transactions</p>
+                <h3 className="text-base font-bold text-slate-900">Database Expense Records Management</h3>
+                <p className="text-xs text-slate-500">Manage or reset recorded expense transactions</p>
               </div>
             </div>
 

@@ -50,7 +50,7 @@ expense-tracker/
 ### 2. Prisma ORM & Database Layer
 - **Prisma Schema (`backend/prisma/schema.prisma`)**: Strongly typed models for `Category`, `Expense`, and `Attachment`.
 - **Database Resilience**: Connects to PostgreSQL via `DATABASE_URL` with automated fallback to `data/db.json` if PostgreSQL is offline, ensuring zero downtime during development.
-- **Database Seeding**: Run `npm run prisma:seed` to seed default business categories and demo disbursements.
+- **Database Seeding**: Run `npm run prisma:seed` to seed default business categories.
 - **Prisma Studio**: Inspect and manage database records visually via `npm run prisma:studio`.
 
 ### 3. VPS Local Storage (PDF & Images)

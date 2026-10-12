@@ -19,23 +19,6 @@ const STORAGE_KEY_USER = 'expense_tracker_user';
 const STORAGE_KEY_TOKEN = 'expense_tracker_token';
 const STORAGE_KEY_REGISTERED = 'expense_tracker_registered_users';
 
-const DEFAULT_FALLBACK_USERS: Record<string, User> = {
-  'demo@example.com': {
-    id: 'usr_demo',
-    name: 'Demo User',
-    email: 'demo@example.com',
-    initials: 'DU',
-    createdAt: '2026-01-01T00:00:00.000Z',
-  },
-  'admin@expensetracker.local': {
-    id: 'usr_admin',
-    name: 'Admin User',
-    email: 'admin@expensetracker.local',
-    initials: 'AU',
-    createdAt: '2026-01-01T00:00:00.000Z',
-  },
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -101,10 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const registeredStr = localStorage.getItem(STORAGE_KEY_REGISTERED);
       const registeredList: any[] = registeredStr ? JSON.parse(registeredStr) : [];
 
-      if (
-        registeredList.some((u) => u.email.toLowerCase() === normalizedEmail) ||
-        DEFAULT_FALLBACK_USERS[normalizedEmail]
-      ) {
+      if (registeredList.some((u) => u.email.toLowerCase() === normalizedEmail)) {
         return { success: false, error: 'An account with this email already exists. Please log in.' };
       }
 
@@ -184,9 +164,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             createdAt: localMatched.createdAt,
           };
           sessionToken = `tok_local_${Date.now()}`;
-        } else if (DEFAULT_FALLBACK_USERS[normalizedEmail]) {
-          serverUser = DEFAULT_FALLBACK_USERS[normalizedEmail];
-          sessionToken = `tok_demo_${Date.now()}`;
         } else {
           return { success: false, error: 'No account found with this email. Please sign up first.' };
         }

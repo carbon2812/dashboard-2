@@ -38,9 +38,6 @@ export default function LoginPage() {
     const prefillEmail = searchParams.get('email');
     if (prefillEmail) {
       setEmail(prefillEmail);
-    } else {
-      setEmail('demo@example.com');
-      setPassword('demo123');
     }
   }, [searchParams]);
 
@@ -72,12 +69,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickDemo = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setErrorMessage('');
   };
 
   return (
@@ -246,44 +237,6 @@ export default function LoginPage() {
                   Create account (Sign Up)
                 </Link>
               </p>
-
-              {/* Quick Demo Access Pills */}
-              <div className="pt-2 border-t border-slate-800/60">
-                <div className="flex items-center justify-between text-[11px] text-slate-400 mb-2">
-                  <span>Quick Demo Login:</span>
-                  <span className="text-slate-500">1-click fill</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleQuickDemo('demo@example.com', 'demo123')}
-                    className="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800/60 border border-slate-800 text-left transition-all group cursor-pointer"
-                  >
-                    <div className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 flex items-center justify-between">
-                      <span>Demo User</span>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 opacity-60 group-hover:opacity-100" />
-                    </div>
-                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
-                      demo@example.com
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleQuickDemo('admin@expensetracker.local', 'admin123')}
-                    className="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800/60 border border-slate-800 text-left transition-all group cursor-pointer"
-                  >
-                    <div className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 flex items-center justify-between">
-                      <span>Admin</span>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 opacity-60 group-hover:opacity-100" />
-                    </div>
-                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">
-                      admin@expensetracker.local
-                    </div>
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </motion.div>

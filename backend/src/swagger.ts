@@ -509,7 +509,7 @@ export const swaggerSpec = {
     '/api/reset': {
       post: {
         tags: ['System'],
-        summary: 'Reset / Clear Demo Dataset',
+        summary: 'Reset / Clear Expense Records',
         description: 'Clears all existing expense transactions and resets the database store to a fresh slate.',
         responses: {
           200: {

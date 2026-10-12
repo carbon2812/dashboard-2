@@ -766,13 +766,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   };
 }
 
-export async function resetDemoData(): Promise<void> {
+export async function resetExpenseData(): Promise<void> {
   if (await isPrismaAvailable()) {
     try {
       await prisma.attachment.deleteMany({});
       await prisma.expense.deleteMany({});
     } catch (err) {
-      console.warn('Prisma resetDemoData error:', err);
+      console.warn('Prisma resetExpenseData error:', err);
     }
   }
   const initial: LocalDBData = {
