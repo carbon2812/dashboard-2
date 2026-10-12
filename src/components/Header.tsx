@@ -68,6 +68,18 @@ export function Header({
           <span className="w-2 h-2 rounded-full bg-emerald-500" />
         </Link>
 
+        {/* User Account / Auth Quick Link */}
+        <Link
+          href="/login"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-xs font-semibold text-slate-700 transition-colors"
+          title="Account Security & Authentication"
+        >
+          <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center">
+            JS
+          </div>
+          <span className="hidden xl:inline">Account</span>
+        </Link>
+
         {/* Quick Add Expense Action */}
         <button
           onClick={onQuickAdd}

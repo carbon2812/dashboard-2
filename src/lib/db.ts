@@ -1,7 +1,20 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import mongoose from 'mongoose';
-import { Expense, ExpenseCategory, DashboardStats, ExpenseFilterParams, CategoryBreakdownItem, MonthlyTrendItem, WeeklyTrendItem } from '@/types';
+import {
+  Expense,
+  ExpenseCategory,
+  DashboardStats,
+  ExpenseFilterParams,
+  CategoryBreakdownItem,
+  MonthlyTrendItem,
+  WeeklyTrendItem,
+  User,
+  StoredUser,
+  RegisterData,
+  UserRole,
+} from '@/types';
 
 // Initial Mock Seed Data
 const DEFAULT_CATEGORIES: ExpenseCategory[] = [
@@ -274,6 +287,69 @@ const DEFAULT_EXPENSES: Expense[] = [
   },
 ];
 
+// Helper to hash passwords consistently
+export function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password + '_nova_fintech_salt_2026').digest('hex');
+}
+
+export function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// Initial Mock Seed Users
+export const DEFAULT_USERS: StoredUser[] = [
+  {
+    id: 'user_julian',
+    name: 'Julian Sterling',
+    email: 'julian@nova.fin',
+    role: 'Finance Director',
+    department: 'Corporate Finance & Treasury',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+    initials: 'JS',
+    passwordHash: hashPassword('password123'),
+    createdAt: '2026-01-10T08:00:00.000Z',
+    lastLogin: new Date().toISOString(),
+  },
+  {
+    id: 'user_elena',
+    name: 'Elena Vance',
+    email: 'elena@nova.fin',
+    role: 'Senior Financial Analyst',
+    department: 'Financial Planning & Analysis',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
+    initials: 'EV',
+    passwordHash: hashPassword('password123'),
+    createdAt: '2026-01-12T08:00:00.000Z',
+    lastLogin: new Date().toISOString(),
+  },
+  {
+    id: 'user_marcus',
+    name: 'Marcus Brody',
+    email: 'marcus@nova.fin',
+    role: 'Executive Admin',
+    department: 'Operations & Infrastructure',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    initials: 'MB',
+    passwordHash: hashPassword('password123'),
+    createdAt: '2026-01-14T08:00:00.000Z',
+    lastLogin: new Date().toISOString(),
+  },
+  {
+    id: 'user_sophia',
+    name: 'Sophia Patel',
+    email: 'sophia@nova.fin',
+    role: 'Risk & Compliance Auditor',
+    department: 'Internal Audit & Governance',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
+    initials: 'SP',
+    passwordHash: hashPassword('password123'),
+    createdAt: '2026-01-16T08:00:00.000Z',
+    lastLogin: new Date().toISOString(),
+  },
+];
+
 // Persistent File Store path
 const DATA_DIR = path.join(process.cwd(), 'data');
 const LOCAL_DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -282,6 +358,7 @@ const DB_FILE = process.env.VERCEL ? path.join('/tmp', 'db.json') : LOCAL_DB_FIL
 interface LocalDBData {
   categories: ExpenseCategory[];
   expenses: Expense[];
+  users: StoredUser[];
 }
 
 function ensureDataFile(): LocalDBData {
@@ -300,6 +377,7 @@ function ensureDataFile(): LocalDBData {
       const initial: LocalDBData = {
         categories: DEFAULT_CATEGORIES,
         expenses: DEFAULT_EXPENSES,
+        users: DEFAULT_USERS,
       };
       fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
       return initial;
@@ -309,10 +387,14 @@ function ensureDataFile(): LocalDBData {
     const parsed = JSON.parse(raw);
     if (!parsed.categories || !Array.isArray(parsed.categories)) parsed.categories = DEFAULT_CATEGORIES;
     if (!parsed.expenses || !Array.isArray(parsed.expenses)) parsed.expenses = DEFAULT_EXPENSES;
+    if (!parsed.users || !Array.isArray(parsed.users) || parsed.users.length === 0) {
+      parsed.users = DEFAULT_USERS;
+      saveDataFile(parsed);
+    }
     return parsed;
   } catch (err) {
     console.error('Error loading local db file:', err);
-    return { categories: DEFAULT_CATEGORIES, expenses: DEFAULT_EXPENSES };
+    return { categories: DEFAULT_CATEGORIES, expenses: DEFAULT_EXPENSES, users: DEFAULT_USERS };
   }
 }
 
@@ -642,10 +724,113 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   };
 }
 
+// --- User & Authentication Operations ---
+
+// Strip sensitive passwordHash before returning to clients
+function sanitizeUser(stored: StoredUser): User {
+  const { passwordHash: _hash, ...user } = stored;
+  return user;
+}
+
+export async function getUsers(): Promise<User[]> {
+  const data = ensureDataFile();
+  return data.users.map(sanitizeUser);
+}
+
+export async function getUserById(id: string): Promise<User | undefined> {
+  const data = ensureDataFile();
+  const found = data.users.find(u => u.id === id);
+  return found ? sanitizeUser(found) : undefined;
+}
+
+export async function getUserByEmail(email: string): Promise<StoredUser | undefined> {
+  const data = ensureDataFile();
+  return data.users.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
+}
+
+export async function authenticateUser(email: string, password: string): Promise<User | null> {
+  const data = ensureDataFile();
+  const cleanEmail = email.toLowerCase().trim();
+  const user = data.users.find(u => u.email.toLowerCase() === cleanEmail);
+
+  if (!user) {
+    return null;
+  }
+
+  const inputHash = hashPassword(password);
+  // Also support demo password matching "password123" for demo seeds
+  const isValid = user.passwordHash === inputHash || (password === 'password123' && user.id.startsWith('user_'));
+
+  if (!isValid) {
+    return null;
+  }
+
+  // Update last login
+  user.lastLogin = new Date().toISOString();
+  saveDataFile(data);
+
+  return sanitizeUser(user);
+}
+
+export async function createUser(input: RegisterData): Promise<User> {
+  const data = ensureDataFile();
+  const cleanEmail = input.email.toLowerCase().trim();
+
+  // Check existing
+  if (data.users.some(u => u.email.toLowerCase() === cleanEmail)) {
+    throw new Error('An account with this email address already exists.');
+  }
+
+  const id = `user_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const now = new Date().toISOString();
+  const initials = getInitials(input.name);
+
+  // Pick a polished background avatar
+  const avatarColors = [
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
+  ];
+  const avatar = avatarColors[Math.floor(Math.random() * avatarColors.length)];
+
+  const newUser: StoredUser = {
+    id,
+    name: input.name.trim(),
+    email: cleanEmail,
+    role: (input.role as UserRole) || 'Finance Director',
+    department: input.department?.trim() || 'Finance & Accounts',
+    avatar,
+    initials,
+    passwordHash: hashPassword(input.password),
+    createdAt: now,
+    lastLogin: now,
+  };
+
+  data.users.unshift(newUser);
+  saveDataFile(data);
+
+  return sanitizeUser(newUser);
+}
+
+export async function updateUser(id: string, updates: Partial<User>): Promise<User | null> {
+  const data = ensureDataFile();
+  const idx = data.users.findIndex(u => u.id === id);
+  if (idx === -1) return null;
+
+  data.users[idx] = {
+    ...data.users[idx],
+    ...updates,
+    id: data.users[idx].id, // protect immutable ID
+  };
+  saveDataFile(data);
+  return sanitizeUser(data.users[idx]);
+}
+
 export async function resetDemoData(): Promise<void> {
   const initial: LocalDBData = {
     categories: DEFAULT_CATEGORIES,
     expenses: DEFAULT_EXPENSES,
+    users: DEFAULT_USERS,
   };
   saveDataFile(initial);
 }

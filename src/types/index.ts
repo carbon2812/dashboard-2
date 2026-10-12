@@ -99,3 +99,47 @@ export interface ExpenseFilterParams {
   sortBy?: 'date' | 'amount' | 'merchant';
   sortOrder?: 'asc' | 'desc';
 }
+
+export type UserRole =
+  | 'Finance Director'
+  | 'Senior Financial Analyst'
+  | 'Executive Admin'
+  | 'Risk & Compliance Auditor'
+  | 'Team Member';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  department: string;
+  avatar?: string;
+  initials: string;
+  createdAt: string;
+  lastLogin?: string;
+}
+
+export interface StoredUser extends User {
+  passwordHash: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  role?: UserRole;
+  department?: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  user?: User;
+  token?: string;
+  error?: string;
+}
