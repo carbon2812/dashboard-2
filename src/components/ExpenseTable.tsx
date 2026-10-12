@@ -8,7 +8,6 @@ import {
   Edit2,
   Trash2,
   ExternalLink,
-  HardDrive,
   Eye,
   FileCode,
   CreditCard,
@@ -99,7 +98,7 @@ export function ExpenseTable({
                       <button
                         onClick={() => onViewBill(exp)}
                         className="inline-flex items-center gap-2 p-1.5 pr-2.5 rounded-xl border border-slate-200/90 bg-white hover:border-indigo-300 hover:bg-indigo-50/40 transition-all text-left shadow-2xs group/btn"
-                        title="Click to view full bill & Google Drive sync"
+                        title="Click to view full receipt & cloud storage details"
                       >
                         {/* Thumbnail image or icon */}
                         <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 border border-slate-100">
@@ -122,7 +121,7 @@ export function ExpenseTable({
                           </div>
                           <div className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            Drive Synced
+                            Cloud Synced
                           </div>
                         </div>
                       </button>

@@ -7,7 +7,7 @@ import {
   TrendingUp,
   Receipt,
   FileCheck2,
-  HardDrive,
+  UploadCloud,
   Plus,
   ArrowRight,
   Sparkles,
@@ -99,7 +99,7 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <Header
           title="Executive Dashboard"
-          subtitle="Real-time financial disbursements, categories & Google Drive receipts"
+          subtitle="Real-time financial disbursements, categories & Cloudinary receipt storage"
           onMobileMenuToggle={() => setMobileMenuOpen((prev) => !prev)}
           onQuickAdd={() => setIsAddModalOpen(true)}
         />
@@ -116,7 +116,7 @@ export default function DashboardPage() {
                 Fintech Expense Intelligence
               </h2>
               <p className="text-xs sm:text-sm text-indigo-200/80 max-w-xl">
-                Track custom category allocations, view spending velocity, and preserve compliant bill receipts in Google Drive storage.
+                Track custom category allocations, view spending velocity, and preserve compliant bill receipts in Cloudinary media storage.
               </p>
             </div>
 
@@ -161,8 +161,8 @@ export default function DashboardPage() {
               <StatCard
                 title="Verified Bill Receipts"
                 value={`${stats.totalReceipts} Synced`}
-                icon={HardDrive}
-                subtitle="Stored in Google Drive"
+                icon={UploadCloud}
+                subtitle="Stored in Cloudinary CDN"
                 iconColor="text-emerald-600"
                 iconBg="bg-emerald-50 border-emerald-100"
               />

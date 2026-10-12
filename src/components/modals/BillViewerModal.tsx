@@ -7,7 +7,7 @@ import {
   ExternalLink,
   Download,
   FileText,
-  HardDrive,
+  UploadCloud,
   FileCode,
   Image as ImageIcon,
   Check,
@@ -87,10 +87,10 @@ export function BillViewerModal({
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Google Drive Status Indicator */}
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium border border-indigo-100">
-                <HardDrive className="w-3.5 h-3.5" />
-                <span>Google Drive Synced</span>
+              {/* Cloud Storage Status Indicator */}
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-medium border border-sky-100">
+                <UploadCloud className="w-3.5 h-3.5" />
+                <span>Cloud Storage Synced</span>
               </div>
 
               {/* View Original / Open Externally */}
@@ -149,7 +149,7 @@ export function BillViewerModal({
                 </div>
                 <h4 className="text-base font-bold text-slate-900">{attachment.name}</h4>
                 <p className="mt-1 text-xs text-slate-500">
-                  Microsoft Word (.docx) documents are stored securely in Google Drive. You can inspect the document details or download it below.
+                  Microsoft Word (.docx) documents are stored securely in cloud storage. You can inspect the document details or download it below.
                 </p>
 
                 <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-left text-xs space-y-1">
@@ -162,9 +162,9 @@ export function BillViewerModal({
                     <span className="font-medium text-slate-700">{formatFileSize(attachment.size)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Drive File ID:</span>
+                    <span className="text-slate-400">Cloud Asset ID:</span>
                     <span className="font-mono text-[10px] text-slate-600 truncate max-w-[180px]">
-                      {attachment.driveFileId || 'Synced'}
+                      {attachment.cloudinaryPublicId || attachment.driveFileId || 'Synced'}
                     </span>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export function BillViewerModal({
           <div className="px-6 py-3.5 bg-white border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>Google Drive File ID: <span className="font-mono text-slate-700">{attachment.driveFileId || 'Synced'}</span></span>
+              <span>Cloud Storage Asset: <span className="font-mono text-slate-700">{attachment.cloudinaryPublicId || attachment.driveFileId || 'Synced'}</span></span>
             </div>
             <button
               onClick={onClose}

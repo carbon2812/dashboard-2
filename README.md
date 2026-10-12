@@ -1,6 +1,6 @@
-# Nova - Fintech Expense Management Dashboard
+# Expense Tracker - Cloud Spend Management Dashboard
 
-A modern, high-performance Fintech Expense Management Dashboard engineered with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS**, and **Framer Motion**, featuring custom expense categories, Google Drive cloud bill synchronization, rich analytics, and a standalone **Node.js + Express** server.
+A modern, high-performance Expense Tracker Dashboard engineered with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS**, and **Framer Motion**, featuring custom expense categories, Cloudinary receipt storage, rich analytics, and a standalone **Node.js + Express** server.
 
 ---
 
@@ -18,13 +18,13 @@ A modern, high-performance Fintech Expense Management Dashboard engineered with 
 - **In-App Bill Previewer Modal**:
   - Image viewer with zoom and high resolution fit.
   - Interactive embedded PDF document viewer.
-  - Microsoft Word (.docx) document inspector with direct Google Drive view & download links.
+  - Microsoft Word (.docx) document inspector with direct cloud download links.
 
-### 3. Google Drive API Integration
-- **Cloud Bill Storage**: Automatically uploads receipts to Google Drive storage via Google Drive API v3 (`googleapis`).
-- **File Metadata & Links**: Stores Google Drive File ID, webViewLink, webContentLink, and thumbnail previews in database.
-- **Zero-Config Simulated Mode**: Functions seamlessly out-of-the-box without requiring API keys, with an instant toggle and status indicator in Settings.
-- **Live Google Drive Setup**: Connect your real Google Cloud OAuth2 credentials or Service Account directly via `.env.local`.
+### 3. Cloudinary Media & Receipt Storage
+- **Cloud Receipt Storage**: Automatically uploads receipts to Cloudinary media cloud with auto-optimization (WebP/AVIF format and responsive quality).
+- **File Metadata & URLs**: Stores Cloudinary Public ID, secure CDN URL, and thumbnail previews in database.
+- **Zero-Config Resilient Fallback**: Functions seamlessly out-of-the-box with local receipt storage if API secret is pending, with instant health status in Settings.
+- **Live Cloudinary Setup**: Preconfigured with Cloud Name (`rgukte0l`) and API Key (`773645529246291`), with quick secret entry in `.env`.
 
 ### 4. Financial Analytics & Dashboards
 - **Overview Metrics**: Total Expenses (YTD), Current Month Spent, Verified Bill Receipts, and Average Transaction Value with monthly growth percentages.
@@ -37,6 +37,12 @@ A modern, high-performance Fintech Expense Management Dashboard engineered with 
 - **Dual View Modes**: Switch between high-density data Table view and modern responsive Grid cards.
 - **Export to CSV**: Instant one-click CSV export of filtered transactions and receipt links.
 
+### 6. Swagger & OpenAPI 3.0 Documentation
+- **Interactive Swagger UI**: Explore and test all 18 endpoints directly in the browser at `/api-docs`.
+- **OpenAPI 3.0 Specification**: Machine-readable JSON spec exposed at `/api/docs` and `/api/swagger.json`.
+- **In-Browser Sandbox**: "Try it out" live query testing with parameters, request bodies, and curl generation.
+- **Full Schema Definitions**: Complete type contracts for `User`, `Expense`, `ExpenseCategory`, `ExpenseAttachment`, `DashboardStats`, and `CloudinaryStatus`.
+
 ---
 
 ## Tech Stack
@@ -46,7 +52,7 @@ A modern, high-performance Fintech Expense Management Dashboard engineered with 
 | **Frontend** | Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Framer Motion, Lucide Icons, Recharts, Canvas Confetti |
 | **Backend** | Next.js Route Handlers + Standalone Node.js Express server (`server/index.ts`) |
 | **Database** | Flexible Hybrid DB: Persistent local store + MongoDB / Mongoose support |
-| **File Storage** | Google Drive API (`googleapis`) with local preview fallback |
+| **File Storage** | Cloudinary API with local preview fallback |
 
 ---
 
@@ -70,21 +76,20 @@ If you prefer running the independent Node.js Express backend API:
 ```bash
 npm run server
 ```
-The Express server will start on port `5000` (or `PORT` specified in `.env.local`).
+The Express server will start on port `5000` (or `PORT` specified in `.env`).
 
 ---
 
-## Configuration (`.env.local`)
+## Configuration (`.env`)
 
 ```env
-# Optional: MongoDB Connection (Leave empty to use automatic persistent demo storage)
-MONGODB_URI=mongodb://localhost:27017/fintech_expenses
+# Cloudinary Media & Bill Storage Configuration
+CLOUDINARY_CLOUD_NAME=rgukte0l
+CLOUDINARY_API_KEY=773645529246291
+CLOUDINARY_API_SECRET=your_api_secret_here
 
-# Optional: Google Drive API (Leave empty for instant simulated Drive mode)
-GOOGLE_DRIVE_CLIENT_ID=your_client_id.apps.googleusercontent.com
-GOOGLE_DRIVE_CLIENT_SECRET=your_client_secret
-GOOGLE_DRIVE_REFRESH_TOKEN=your_refresh_token
-GOOGLE_DRIVE_FOLDER_ID=your_target_folder_id
+# Optional: MongoDB Connection (Leave empty to use automatic persistent store in data/db.json)
+# MONGODB_URI=mongodb://localhost:27017/expense_tracker
 
 # Server Port for Standalone Express API
 PORT=5000
@@ -95,7 +100,7 @@ PORT=5000
 ## Folder Structure
 
 ```
-custom dashboard/
+expense-tracker/
 ├── public/
 │   └── uploads/                  # Local preview storage for bill receipts
 ├── src/
@@ -103,14 +108,14 @@ custom dashboard/
 │   │   ├── api/
 │   │   │   ├── categories/       # Category CRUD endpoints
 │   │   │   ├── expenses/         # Expense CRUD & filtering endpoints
-│   │   │   ├── upload/           # Bill upload handler (Google Drive)
+│   │   │   ├── upload/           # Bill upload handler (Cloudinary)
 │   │   │   ├── stats/            # Financial analytics & aggregations
-│   │   │   ├── drive/status/     # Google Drive status check
+│   │   │   ├── cloudinary/status/# Cloudinary storage status check
 │   │   │   └── reset/            # Reset demo transactions
 │   │   ├── dashboard/            # Executive dashboard overview & charts
 │   │   ├── expenses/             # Expense ledger with filters & CSV export
 │   │   ├── categories/           # Custom category builder & budget tracker
-│   │   ├── settings/             # Google Drive connection & profile
+│   │   ├── settings/             # Cloudinary storage connection & profile
 │   │   ├── globals.css           # Clean light theme stylesheet
 │   │   └── layout.tsx            # Root layout with ToastProvider
 │   ├── components/
@@ -118,15 +123,16 @@ custom dashboard/
 │   │   ├── modals/               # Add/Edit Expense, BillViewer, CategoryModal
 │   │   ├── ui/                   # CategoryPill, Badge, Skeleton, EmptyState, Toast
 │   │   ├── Sidebar.tsx           # Collapsible light theme navigation
-│   │   ├── Header.tsx            # Top header with quick action & Drive pill
+│   │   ├── Header.tsx            # Top header with quick action & Cloud pill
 │   │   ├── ExpenseTable.tsx      # Clean ledger table
 │   │   ├── ExpenseCard.tsx       # Responsive transaction cards
 │   │   └── ExpenseFilters.tsx    # Filter bar
 │   ├── context/
+│   │   ├── AuthContext.tsx       # Authentication & user profile
 │   │   └── ToastContext.tsx      # Toast notifications
 │   ├── lib/
 │   │   ├── db.ts                 # Database abstraction & analytics engine
-│   │   ├── drive.ts              # Google Drive integration service
+│   │   ├── cloudinary.ts         # Cloudinary media storage integration
 │   │   ├── icons.ts              # Category icons and color palette
 │   │   └── utils.ts              # Currency, date, file formatting & CSV export
 │   └── types/

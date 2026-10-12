@@ -1,5 +1,5 @@
 {
-  "name": "fintech-expense-dashboard",
+  "name": "expense-tracker",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
+    "cloudinary": "^2.11.0",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",

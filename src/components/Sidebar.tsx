@@ -8,7 +8,8 @@ import {
   Receipt,
   Tags,
   Settings,
-  HardDrive,
+  UploadCloud,
+  FileCode,
   PlusCircle,
   ExternalLink,
   ChevronRight,
@@ -58,10 +59,16 @@ export function Sidebar({
       badge: undefined,
     },
     {
-      label: 'Settings & Drive',
+      label: 'Settings',
       href: '/settings',
       icon: Settings,
-      badge: driveConnected ? 'Sync' : 'Setup',
+      badge: undefined,
+    },
+    {
+      label: 'API Docs',
+      href: '/api-docs',
+      icon: FileCode,
+      badge: 'Swagger',
     },
     {
       label: 'Auth & Login',
@@ -81,10 +88,10 @@ export function Sidebar({
           </div>
           <div>
             <div className="font-bold text-slate-900 tracking-tight text-base flex items-center gap-1.5">
-              <span>Nova</span>
-              <span className="text-xs font-semibold px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-600 border border-indigo-100/80">FIN</span>
+              <span>Expense</span>
+              <span className="text-xs font-semibold px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-600 border border-indigo-100/80">Tracker</span>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">Expense Management</p>
+            <p className="text-[11px] text-slate-400 font-medium">Smart Finance & Bills</p>
           </div>
         </Link>
         {onMobileClose && (
@@ -156,28 +163,28 @@ export function Sidebar({
         })}
       </nav>
 
-      {/* Google Drive Status Footer Widget */}
+      {/* Cloud Storage Status Footer Widget */}
       <div className="p-4 m-3 rounded-2xl bg-slate-50 border border-slate-200/70">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-sm">
-              <HardDrive className="w-3.5 h-3.5 text-indigo-600" />
+              <UploadCloud className="w-3.5 h-3.5 text-sky-600" />
             </div>
-            <span className="text-xs font-semibold text-slate-800">Google Drive</span>
+            <span className="text-xs font-semibold text-slate-800">Cloud Storage</span>
           </div>
           <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Connected
+            Active
           </span>
         </div>
         <p className="text-[11px] text-slate-500 leading-relaxed">
-          Bill receipts sync automatically to Drive storage.
+          Receipts sync directly to Cloudinary media storage.
         </p>
         <Link
           href="/settings"
-          className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-medium text-indigo-600 hover:text-indigo-700"
+          className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-medium text-sky-600 hover:text-sky-700"
         >
-          <span>Manage Integration</span>
+          <span>Storage Settings</span>
           <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
@@ -214,7 +221,7 @@ export function Sidebar({
           >
             <div className="flex items-center gap-2">
               <LogIn className="w-4 h-4" />
-              <span>Sign In to Nova</span>
+              <span>Sign In</span>
             </div>
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
           </Link>

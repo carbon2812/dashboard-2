@@ -42,3 +42,39 @@ input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+/* Swagger UI modern customizations */
+.swagger-ui {
+  font-family: inherit !important;
+}
+.swagger-ui .topbar {
+  display: none !important;
+}
+.swagger-ui .info {
+  margin: 10px 0 25px 0 !important;
+}
+.swagger-ui .info .title {
+  font-size: 24px !important;
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+}
+.swagger-ui .opblock {
+  border-radius: 16px !important;
+  border-width: 1px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  margin: 0 0 12px 0 !important;
+  overflow: hidden !important;
+}
+.swagger-ui .opblock .opblock-summary {
+  padding: 10px 16px !important;
+}
+.swagger-ui .btn {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+}
+.swagger-ui select,
+.swagger-ui input[type="text"] {
+  border-radius: 8px !important;
+}
+

@@ -1,17 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
-  HardDrive,
   CheckCircle2,
   AlertCircle,
   RefreshCw,
   UploadCloud,
   FileText,
+  FileCode,
+  Terminal,
   User,
   Shield,
   Key,
-  Folder,
   Database,
   ExternalLink,
   Copy,
@@ -19,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
-import { DriveStatus } from '@/types';
+import { CloudinaryStatus } from '@/types';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 
@@ -28,10 +29,10 @@ export default function SettingsPage() {
   const { user } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [driveStatus, setDriveStatus] = useState<DriveStatus | null>(null);
-  const [checkingDrive, setCheckingDrive] = useState(false);
+  const [cloudinaryStatus, setCloudinaryStatus] = useState<CloudinaryStatus | null>(null);
+  const [checkingCloudinary, setCheckingCloudinary] = useState(false);
   const [testUploading, setTestUploading] = useState(false);
-  const [copiedKey, setCopiedKey] = useState(false);
+  const [copiedCloudinary, setCopiedCloudinary] = useState(false);
 
   // Profile Form state
   const [profileName, setProfileName] = useState(user?.name || '');
@@ -45,23 +46,23 @@ export default function SettingsPage() {
     }
   }, [user]);
 
-  const checkDriveStatus = async () => {
+  const checkCloudinaryStatus = async () => {
     try {
-      setCheckingDrive(true);
-      const res = await fetch('/api/drive/status');
+      setCheckingCloudinary(true);
+      const res = await fetch('/api/cloudinary/status');
       const data = await res.json();
       if (data.success) {
-        setDriveStatus(data.data);
+        setCloudinaryStatus(data.data);
       }
     } catch (err: any) {
-      toastError('Status Check Failed', err.message);
+      console.warn('Cloudinary status check error:', err);
     } finally {
-      setCheckingDrive(false);
+      setCheckingCloudinary(false);
     }
   };
 
   useEffect(() => {
-    checkDriveStatus();
+    checkCloudinaryStatus();
   }, []);
 
   const handleTestUpload = async () => {
@@ -82,8 +83,8 @@ export default function SettingsPage() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error);
 
-      success('Test Upload Successful', `Bill synced to Drive with file ID: ${data.data.driveFileId}`);
-      checkDriveStatus();
+      success('Test Upload Successful', `Receipt uploaded to Cloudinary: ${data.data.name || 'test-receipt.txt'}`);
+      checkCloudinaryStatus();
     } catch (err: any) {
       toastError('Test Upload Failed', err.message);
     } finally {
@@ -104,14 +105,6 @@ export default function SettingsPage() {
     }
   };
 
-  const handleCopyEnv = () => {
-    const envSnippet = `GOOGLE_DRIVE_CLIENT_ID=your_client_id.apps.googleusercontent.com\nGOOGLE_DRIVE_CLIENT_SECRET=your_client_secret\nGOOGLE_DRIVE_REFRESH_TOKEN=your_refresh_token\nGOOGLE_DRIVE_FOLDER_ID=your_target_folder_id`;
-    navigator.clipboard.writeText(envSnippet);
-    setCopiedKey(true);
-    info('Copied to Clipboard', 'Google Drive environment variables copied');
-    setTimeout(() => setCopiedKey(false), 2500);
-  };
-
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       <Sidebar
@@ -122,106 +115,111 @@ export default function SettingsPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <Header
           title="System Settings"
-          subtitle="Manage corporate profile, Google Drive bill synchronization, and data storage"
+          subtitle="Manage corporate profile, Cloudinary media storage, and data preferences"
           onMobileMenuToggle={() => setMobileMenuOpen((prev) => !prev)}
           onQuickAdd={() => {}}
         />
 
         <main className="flex-1 p-6 sm:p-8 space-y-8 max-w-4xl mx-auto w-full">
-          {/* Section 1: Google Drive Integration Status */}
+
+          {/* Section 1: Cloudinary Media Storage Integration */}
           <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-card space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
-                  <HardDrive className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 shadow-sm">
+                  <UploadCloud className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Google Drive Integration</h3>
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>Cloudinary Cloud Storage</span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 border border-sky-100">
+                      Receipt CDN
+                    </span>
+                  </h3>
                   <p className="text-xs text-slate-500">
-                    Automatic cloud synchronization for attached bills, invoices & receipts
+                    High-speed media storage with automatic WebP/AVIF format and responsive thumbnail delivery
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 self-start sm:self-auto">
                 <button
-                  onClick={checkDriveStatus}
-                  disabled={checkingDrive}
+                  onClick={checkCloudinaryStatus}
+                  disabled={checkingCloudinary}
                   className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
-                  title="Refresh Drive Connection Status"
+                  title="Refresh Cloudinary Connection Status"
                 >
-                  <RefreshCw className={`w-4 h-4 ${checkingDrive ? 'animate-spin text-indigo-600' : ''}`} />
+                  <RefreshCw className={`w-4 h-4 ${checkingCloudinary ? 'animate-spin text-sky-600' : ''}`} />
                 </button>
 
                 <button
                   onClick={handleTestUpload}
                   disabled={testUploading}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold shadow-sm transition-all"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white text-xs font-semibold shadow-sm transition-all"
                 >
                   <UploadCloud className="w-3.5 h-3.5" />
-                  <span>{testUploading ? 'Testing Sync...' : 'Test Bill Upload'}</span>
+                  <span>{testUploading ? 'Testing Upload...' : 'Test Cloud Upload'}</span>
                 </button>
               </div>
             </div>
 
-            {/* Status Information Box */}
+            {/* Cloudinary Status Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                <span className="text-[11px] font-semibold uppercase text-slate-400">Connection Mode</span>
+                <span className="text-[11px] font-semibold uppercase text-slate-400">Connection Status</span>
                 <div className="mt-1 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="font-bold text-sm text-slate-900 capitalize">
-                    {driveStatus?.mode === 'production' ? 'Live Cloud Storage' : 'Active (Simulated Mode)'}
+                  <span className={`w-2 h-2 rounded-full ${cloudinaryStatus?.connected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  <span className="font-bold text-sm text-slate-900">
+                    {cloudinaryStatus?.connected ? 'Live Connected' : 'Ready (Add Secret)'}
                   </span>
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                <span className="text-[11px] font-semibold uppercase text-slate-400">Target Folder</span>
-                <div className="mt-1 flex items-center gap-1.5 text-sm font-bold text-slate-900 truncate">
-                  <Folder className="w-4 h-4 text-indigo-500 shrink-0" />
-                  <span className="truncate">{driveStatus?.folderName || 'Fintech Bills & Receipts'}</span>
+                <span className="text-[11px] font-semibold uppercase text-slate-400">Cloud Name</span>
+                <div className="mt-1 text-sm font-bold text-slate-900">
+                  {cloudinaryStatus?.cloudName || 'rgukte0l'}
                 </div>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                <span className="text-[11px] font-semibold uppercase text-slate-400">Storage Allocated</span>
-                <div className="mt-1 text-sm font-bold text-slate-900">
-                  {driveStatus?.quotaUsed || '142.8 MB'} / {driveStatus?.quotaTotal || '15 GB'}
+                <span className="text-[11px] font-semibold uppercase text-slate-400">API Key</span>
+                <div className="mt-1 text-sm font-mono font-bold text-slate-900">
+                  {cloudinaryStatus?.apiKey || '773645529246291'}
                 </div>
               </div>
             </div>
 
-            {/* Note & Setup Instructions */}
-            <div className="p-5 rounded-2xl bg-indigo-50/50 border border-indigo-100 space-y-3">
+            {/* Copy Config Box */}
+            <div className="p-5 rounded-2xl bg-sky-50/50 border border-sky-100 space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 font-semibold text-xs text-indigo-900">
-                  <Key className="w-4 h-4 text-indigo-600" />
-                  <span>How to connect your live Google Drive API account</span>
+                <div className="flex items-center gap-2 font-semibold text-xs text-sky-900">
+                  <Key className="w-4 h-4 text-sky-600" />
+                  <span>Environment Variables for .env.local</span>
                 </div>
                 <button
-                  onClick={handleCopyEnv}
-                  className="flex items-center gap-1 text-[11px] font-semibold text-indigo-700 hover:text-indigo-900"
+                  onClick={() => {
+                    const snippet = `CLOUDINARY_CLOUD_NAME=rgukte0l\nCLOUDINARY_API_KEY=773645529246291\nCLOUDINARY_API_SECRET=your_api_secret_here`;
+                    navigator.clipboard.writeText(snippet);
+                    setCopiedCloudinary(true);
+                    setTimeout(() => setCopiedCloudinary(false), 2000);
+                  }}
+                  className="flex items-center gap-1 text-[11px] font-semibold text-sky-700 hover:text-sky-900"
                 >
-                  {copiedKey ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedKey ? 'Copied' : 'Copy env config'}</span>
+                  {copiedCloudinary ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedCloudinary ? 'Copied' : 'Copy Cloudinary config'}</span>
                 </button>
               </div>
 
-              <p className="text-xs text-indigo-950/80 leading-relaxed">
-                The dashboard includes automatic zero-config simulated Google Drive storage so you can upload and preview bills immediately. To sync directly to your real Google Drive account, provide your Google Cloud OAuth2 credentials in <code className="px-1.5 py-0.5 rounded bg-indigo-100 font-mono text-indigo-900">.env.local</code>.
-              </p>
-
               <div className="p-3 rounded-xl bg-slate-900 text-slate-100 font-mono text-[11px] overflow-x-auto space-y-0.5">
-                <div>GOOGLE_DRIVE_CLIENT_ID=your_client_id.apps.googleusercontent.com</div>
-                <div>GOOGLE_DRIVE_CLIENT_SECRET=your_client_secret</div>
-                <div>GOOGLE_DRIVE_REFRESH_TOKEN=your_refresh_token</div>
-                <div>GOOGLE_DRIVE_FOLDER_ID=your_folder_id</div>
+                <div>CLOUDINARY_CLOUD_NAME=rgukte0l</div>
+                <div>CLOUDINARY_API_KEY=773645529246291</div>
+                <div>CLOUDINARY_API_SECRET=your_api_secret_here</div>
               </div>
             </div>
           </div>
 
-          {/* Section 2: Corporate Profile & Currency */}
+          {/* Section 3: Corporate Profile & Currency */}
           <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-card space-y-6">
             <div className="border-b border-slate-100 pb-4">
               <h3 className="text-lg font-bold text-slate-900">Corporate Profile</h3>
@@ -285,7 +283,48 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Section 3: Data Maintenance & Reset */}
+          {/* Section 3: REST API & Developer Documentation */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-card space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
+                  <FileCode className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>Swagger API Documentation</span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      OpenAPI 3.0
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Interactive sandbox documentation for all 18 authentication, expense, category, and storage endpoints
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/api/docs"
+                  target="_blank"
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>OpenAPI JSON</span>
+                </Link>
+
+                <Link
+                  href="/api-docs"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all"
+                >
+                  <Terminal className="w-3.5 h-3.5" />
+                  <span>Open Swagger UI</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Data Maintenance & Reset */}
           <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-card space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { uploadBillToGoogleDrive } from '@/lib/drive';
+import { uploadReceipt, isCloudinaryConfigured } from '@/lib/cloudinary';
 
 // Supported bill attachment formats: JPG, PNG, PDF, DOCX
 const ALLOWED_MIME_TYPES = [
@@ -50,12 +50,13 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const attachment = await uploadBillToGoogleDrive(buffer, file.name, mimeType);
+    const attachment = await uploadReceipt(buffer, file.name, mimeType);
+    const storageProvider = isCloudinaryConfigured() ? 'Cloudinary CDN' : 'Local Storage';
 
     return NextResponse.json({
       success: true,
       data: attachment,
-      message: 'Bill uploaded to Google Drive storage successfully',
+      message: `Bill uploaded to ${storageProvider} successfully`,
     });
   } catch (error: any) {
     console.error('Upload handler error:', error);

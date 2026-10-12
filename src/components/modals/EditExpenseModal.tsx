@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  HardDrive,
   Trash2,
   DollarSign,
   Calendar,
@@ -82,7 +81,7 @@ export function EditExpenseModal({
       }
 
       setAttachment(data.data);
-      success('Bill Synced', `${file.name} uploaded to Google Drive`);
+      success('Bill Synced', `${file.name} uploaded to Cloudinary`);
     } catch (err: any) {
       toastError('Upload Failed', err.message);
     } finally {
@@ -241,7 +240,7 @@ export function EditExpenseModal({
                     </div>
                     <div className="min-w-0">
                       <div className="text-xs font-semibold text-slate-900 truncate">{attachment.name}</div>
-                      <div className="text-[11px] text-slate-500">{formatFileSize(attachment.size)} • Google Drive Synced</div>
+                      <div className="text-[11px] text-slate-500">{formatFileSize(attachment.size)} • Cloud Synced</div>
                     </div>
                   </div>
                   <button
@@ -267,7 +266,7 @@ export function EditExpenseModal({
                   {uploading ? (
                     <div className="flex items-center justify-center gap-2 text-xs text-indigo-600">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Syncing to Google Drive...</span>
+                      <span>Syncing to Cloud Storage...</span>
                     </div>
                   ) : (
                     <span className="text-xs text-indigo-600 hover:underline">Click to upload replacement bill</span>

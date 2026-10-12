@@ -18,7 +18,7 @@ import {
   ArrowRight,
   Check,
   AlertCircle,
-  HardDrive,
+  UploadCloud,
   KeyRound,
   ChevronLeft,
   RefreshCw,
@@ -89,7 +89,7 @@ export default function LoginPage() {
     setSubmitting(false);
 
     if (res.success) {
-      success('Authentication Successful', `Welcome back to Nova Fin.`);
+      success('Authentication Successful', `Welcome back to Expense Tracker.`);
       router.push('/dashboard');
     } else {
       setFormError(res.error || 'Authentication failed. Please verify credentials.');
@@ -130,7 +130,7 @@ export default function LoginPage() {
     setSubmitting(false);
 
     if (res.success) {
-      success('Account Created', `Welcome to Nova Fin, ${signUpName}!`);
+      success('Account Created', `Welcome to Expense Tracker, ${signUpName}!`);
       router.push('/dashboard');
     } else {
       setFormError(res.error || 'Registration failed.');
@@ -192,12 +192,12 @@ export default function LoginPage() {
           </div>
           <div>
             <div className="font-bold text-white tracking-tight text-base flex items-center gap-2">
-              <span>Nova</span>
+              <span>Expense Tracker</span>
               <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                FIN ENTERPRISE
+                PRO
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-medium">Expense Management Platform</p>
+            <p className="text-[11px] text-slate-400 font-medium">Smart Expense Management</p>
           </div>
         </Link>
 
@@ -237,7 +237,7 @@ export default function LoginPage() {
             </h1>
 
             <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
-              Track multi-currency disbursements, automate bill sync to Google Drive cloud storage, and gain real-time category budget visibility.
+              Track multi-currency disbursements, automate bill sync to Cloudinary cloud storage, and gain real-time category budget visibility.
             </p>
           </motion.div>
 
@@ -264,14 +264,14 @@ export default function LoginPage() {
             <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800/80 backdrop-blur-md hover:border-slate-700 transition-all">
               <div className="flex items-center justify-between mb-2">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
-                  <HardDrive className="w-4 h-4" />
+                  <UploadCloud className="w-4 h-4" />
                 </div>
-                <span className="text-[11px] font-semibold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20">
-                  Drive Sync
+                <span className="text-[11px] font-semibold text-sky-300 bg-sky-500/10 px-2 py-0.5 rounded-md border border-sky-500/20">
+                  Cloud CDN
                 </span>
               </div>
               <div className="text-lg font-bold text-white">Zero-Loss Vault</div>
-              <div className="text-xs text-slate-400 mt-0.5">Automated bill receipt backup</div>
+              <div className="text-xs text-slate-400 mt-0.5">Cloudinary media backup</div>
             </div>
           </motion.div>
 
@@ -545,7 +545,7 @@ export default function LoginPage() {
                     </>
                   ) : (
                     <>
-                      <span>Sign In to Nova Workspace</span>
+                      <span>Sign In to Expense Tracker</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -792,7 +792,7 @@ export default function LoginPage() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-slate-900 bg-slate-950/80 px-6 py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>© 2026 Nova Financial Systems Inc. Enterprise Expense Automation.</p>
+          <p>© 2026 Expense Tracker Inc. All rights reserved.</p>
           <div className="flex items-center gap-4 text-slate-400">
             <span className="hover:text-white cursor-pointer transition-colors">Privacy Shield</span>
             <span>•</span>
@@ -845,7 +845,7 @@ export default function LoginPage() {
               {!resetSent ? (
                 <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Enter the corporate email address associated with your Nova account. We will send you an OTP recovery code and temporary sign-in link.
+                    Enter the email address associated with your Expense Tracker account. We will send you an OTP recovery code and temporary sign-in link.
                   </p>
 
                   <div>

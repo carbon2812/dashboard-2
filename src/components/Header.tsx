@@ -5,7 +5,7 @@ import {
   Menu,
   Plus,
   Search,
-  HardDrive,
+  UploadCloud,
   Calendar,
   Sparkles,
 } from 'lucide-react';
@@ -59,14 +59,14 @@ export function Header({
           <span>{currentDate}</span>
         </div>
 
-        {/* Google Drive Status Link */}
+        {/* Cloud Storage Status Link */}
         <Link
           href="/settings"
           className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-xs font-medium text-slate-700 transition-colors"
-          title="Google Drive Storage Status"
+          title="Cloudinary Cloud Storage Status"
         >
-          <HardDrive className="w-3.5 h-3.5 text-indigo-600" />
-          <span className="hidden md:inline">Drive Sync</span>
+          <UploadCloud className="w-3.5 h-3.5 text-sky-600" />
+          <span className="hidden md:inline">Cloud Storage</span>
           <span className="w-2 h-2 rounded-full bg-emerald-500" />
         </Link>
 

@@ -125,7 +125,7 @@ export default function ExpensesPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <Header
           title="Expenses Ledger"
-          subtitle="Explore, filter, and audit corporate expenditures with Google Drive receipts"
+          subtitle="Explore, filter, and audit corporate expenditures with Cloudinary receipts"
           onMobileMenuToggle={() => setMobileMenuOpen((prev) => !prev)}
           onQuickAdd={() => setIsAddModalOpen(true)}
         />

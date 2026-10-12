@@ -4,8 +4,8 @@ import { ToastProvider } from '@/context/ToastContext';
 import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
-  title: 'Fintech Expense Management Dashboard',
-  description: 'Modern, high-performance corporate expense management with Google Drive bill synchronization and custom category intelligence.',
+  title: 'Expense Tracker',
+  description: 'Expense Tracker - Modern corporate and personal expense management with Cloudinary receipt cloud storage and custom category intelligence.',
 };
 
 export default function RootLayout({

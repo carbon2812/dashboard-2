@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  HardDrive,
   Trash2,
   DollarSign,
   Calendar,
@@ -116,7 +115,7 @@ export function AddExpenseModal({
       }
 
       setAttachment(data.data);
-      success('Bill Attached & Synced', `${file.name} uploaded to Google Drive storage`);
+      success('Bill Attached & Synced', `${file.name} uploaded to Cloudinary storage`);
     } catch (err: any) {
       setUploadError(err.message || 'File upload failed');
       toastError('Upload Failed', err.message);
@@ -227,7 +226,7 @@ export function AddExpenseModal({
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900">Record New Expense</h3>
-                <p className="text-xs text-slate-500">Add disbursement details and sync bill to Google Drive</p>
+                <p className="text-xs text-slate-500">Add disbursement details and sync bill to cloud storage</p>
               </div>
             </div>
             <button
@@ -367,15 +366,15 @@ export function AddExpenseModal({
               />
             </div>
 
-            {/* Bill Attachment / Google Drive Drag & Drop Zone */}
+            {/* Bill Attachment / Cloudinary Drag & Drop Zone */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-slate-700">
                   Bill Attachment (JPG, PNG, PDF, DOCX)
                 </label>
-                <span className="flex items-center gap-1 text-[11px] text-indigo-600 font-medium">
-                  <HardDrive className="w-3 h-3" />
-                  Google Drive Storage
+                <span className="flex items-center gap-1 text-[11px] text-sky-600 font-medium">
+                  <UploadCloud className="w-3 h-3" />
+                  Cloud Storage
                 </span>
               </div>
 
@@ -404,7 +403,7 @@ export function AddExpenseModal({
                     <div className="py-2 flex flex-col items-center justify-center gap-2">
                       <Loader2 className="w-6 h-6 text-indigo-600 animate-spin" />
                       <span className="text-xs font-medium text-slate-600">
-                        Uploading & syncing to Google Drive...
+                        Uploading & syncing to cloud storage...
                       </span>
                     </div>
                   ) : (
@@ -441,7 +440,7 @@ export function AddExpenseModal({
                         <span>•</span>
                         <span className="text-emerald-600 font-medium flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" />
-                          Drive Synced
+                          Cloud Synced
                         </span>
                       </div>
                     </div>

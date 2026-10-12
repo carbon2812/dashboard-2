@@ -14,11 +14,20 @@ export interface ExpenseAttachment {
   name: string;
   mimeType: string;
   size: number;
+  cloudinaryPublicId?: string;
+  cloudinaryUrl?: string;
   driveFileId?: string;
   driveViewLink?: string;
   driveDownloadLink?: string;
   thumbnailUrl?: string;
   localUrl?: string;
+}
+
+export interface CloudinaryStatus {
+  connected: boolean;
+  cloudName: string;
+  apiKey?: string;
+  message: string;
 }
 
 export type PaymentMethod = 'Corporate Card' | 'Wire Transfer' | 'ACH' | 'Reimbursement' | 'Petty Cash';

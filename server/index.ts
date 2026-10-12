@@ -15,7 +15,8 @@ import {
   getDashboardStats,
   resetDemoData,
 } from '../src/lib/db';
-import { getDriveStatus } from '../src/lib/drive';
+import { getCloudinaryStatus } from '../src/lib/cloudinary';
+import { swaggerSpec } from '../src/lib/swagger';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
@@ -154,13 +155,18 @@ app.get('/api/stats', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/api/drive/status', async (req: Request, res: Response) => {
+app.get('/api/cloudinary/status', (req: Request, res: Response) => {
   try {
-    const status = await getDriveStatus();
+    const status = getCloudinaryStatus();
     res.json({ success: true, data: status });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// Swagger / OpenAPI Specification
+app.get(['/api/docs', '/api/swagger.json'], (req: Request, res: Response) => {
+  res.json(swaggerSpec);
 });
 
 app.listen(PORT, () => {
