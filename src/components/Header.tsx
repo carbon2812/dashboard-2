@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
@@ -24,6 +25,7 @@ export function Header({
   title = 'Overview',
   subtitle = 'Monitor and manage corporate financial disbursements',
 }: HeaderProps) {
+  const { user } = useAuth();
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -72,12 +74,12 @@ export function Header({
         <Link
           href="/login"
           className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-xs font-semibold text-slate-700 transition-colors"
-          title="Account Security & Authentication"
+          title={user ? `Signed in as ${user.name} (${user.role})` : 'Sign In'}
         >
           <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center">
-            JS
+            {user?.initials || 'ME'}
           </div>
-          <span className="hidden xl:inline">Account</span>
+          <span className="hidden xl:inline">{user?.name ? user.name.split(' ')[0] : 'Sign In'}</span>
         </Link>
 
         {/* Quick Add Expense Action */}
