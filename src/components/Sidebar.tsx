@@ -35,7 +35,7 @@ export function Sidebar({
   const navItems = [
     {
       label: 'Dashboard',
-      href: '/dashboard',
+      href: '/',
       icon: LayoutDashboard,
       badge: undefined,
     },
@@ -63,7 +63,7 @@ export function Sidebar({
     <div className="flex flex-col h-full bg-white border-r border-slate-200/80 w-64 select-none">
       {/* Brand Header */}
       <div className="p-6 flex items-center justify-between border-b border-slate-100">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
+        <Link href="/" className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-indigo-400 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
             <Receipt className="w-5 h-5" />
           </div>
@@ -104,7 +104,10 @@ export function Sidebar({
           Menu
         </div>
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          const isActive =
+            item.href === '/'
+              ? pathname === '/' || pathname === '/dashboard'
+              : pathname === item.href || pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
             <Link
