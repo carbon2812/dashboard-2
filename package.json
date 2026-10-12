@@ -12,7 +12,11 @@
     "prisma:generate": "npm run prisma:generate --prefix backend",
     "prisma:push": "npm run prisma:push --prefix backend",
     "prisma:seed": "npm run prisma:seed --prefix backend",
-    "prisma:studio": "npm run prisma:studio --prefix backend"
+    "prisma:studio": "npm run prisma:studio --prefix backend",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose build",
+    "docker:logs": "docker compose logs -f"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

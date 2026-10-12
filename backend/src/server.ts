@@ -23,7 +23,7 @@ dotenv.config({ path: '.env.local' });
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Configure file upload with 15MB limit
 const upload = multer({
