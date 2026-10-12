@@ -71,55 +71,5 @@
       "createdAt": "2026-01-15T09:00:00.000Z"
     }
   ],
-  "expenses": [],
-  "users": [
-    {
-      "id": "user_julian",
-      "name": "Julian Sterling",
-      "email": "julian@nova.fin",
-      "role": "Finance Director",
-      "department": "Corporate Finance & Treasury",
-      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
-      "initials": "JS",
-      "passwordHash": "ae769e4450cf3f851fa5422b4458fab98b7e127fc9d82ce7578e27d2b6eac5e3",
-      "createdAt": "2026-01-10T08:00:00.000Z",
-      "lastLogin": "2026-10-12T12:11:09.088Z"
-    },
-    {
-      "id": "user_elena",
-      "name": "Elena Vance",
-      "email": "elena@nova.fin",
-      "role": "Senior Financial Analyst",
-      "department": "Financial Planning & Analysis",
-      "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80",
-      "initials": "EV",
-      "passwordHash": "ae769e4450cf3f851fa5422b4458fab98b7e127fc9d82ce7578e27d2b6eac5e3",
-      "createdAt": "2026-01-12T08:00:00.000Z",
-      "lastLogin": "2026-10-12T12:07:25.433Z"
-    },
-    {
-      "id": "user_marcus",
-      "name": "Marcus Brody",
-      "email": "marcus@nova.fin",
-      "role": "Executive Admin",
-      "department": "Operations & Infrastructure",
-      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-      "initials": "MB",
-      "passwordHash": "ae769e4450cf3f851fa5422b4458fab98b7e127fc9d82ce7578e27d2b6eac5e3",
-      "createdAt": "2026-01-14T08:00:00.000Z",
-      "lastLogin": "2026-10-12T12:07:25.433Z"
-    },
-    {
-      "id": "user_sophia",
-      "name": "Sophia Patel",
-      "email": "sophia@nova.fin",
-      "role": "Risk & Compliance Auditor",
-      "department": "Internal Audit & Governance",
-      "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80",
-      "initials": "SP",
-      "passwordHash": "ae769e4450cf3f851fa5422b4458fab98b7e127fc9d82ce7578e27d2b6eac5e3",
-      "createdAt": "2026-01-16T08:00:00.000Z",
-      "lastLogin": "2026-10-12T12:07:25.433Z"
-    }
-  ]
+  "expenses": []
 }

@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  color       String    @default("#6366f1")
+  icon        String    @default("Layers")
+  description String?
+  budget      Float?
+  isDefault   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  expenses    Expense[]
+
+  @@map("categories")
+}
+
+model Expense {
+  id            String      @id @default(cuid())
+  amount        Float
+  currency      String      @default("INR")
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  date          String      // Formatted "YYYY-MM-DD"
+  description   String
+  merchant      String?
+  paymentMethod String      @default("Corporate Card")
+  status        String      @default("Approved")
+  attachment    Attachment?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("expenses")
+}
+
+model Attachment {
+  id                 String   @id @default(cuid())
+  expenseId          String?  @unique
+  expense            Expense? @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  name               String
+  mimeType           String
+  size               Int
+  cloudinaryPublicId String?
+  cloudinaryUrl      String?
+  driveFileId        String?
+  driveViewLink      String?
+  driveDownloadLink  String?
+  thumbnailUrl       String?
+  localUrl           String?
+  createdAt          DateTime @default(now())
+
+  @@map("attachments")
+}

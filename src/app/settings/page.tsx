@@ -22,11 +22,9 @@ import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { CloudinaryStatus } from '@/types';
 import { useToast } from '@/context/ToastContext';
-import { useAuth } from '@/context/AuthContext';
 
 export default function SettingsPage() {
   const { success, error: toastError, info } = useToast();
-  const { user } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cloudinaryStatus, setCloudinaryStatus] = useState<CloudinaryStatus | null>(null);
@@ -35,16 +33,9 @@ export default function SettingsPage() {
   const [copiedCloudinary, setCopiedCloudinary] = useState(false);
 
   // Profile Form state
-  const [profileName, setProfileName] = useState(user?.name || '');
-  const [profileEmail, setProfileEmail] = useState(user?.email || '');
+  const [profileName, setProfileName] = useState('Finance Team');
+  const [profileEmail, setProfileEmail] = useState('finance@expensetracker.local');
   const [currency, setCurrency] = useState('INR (₹)');
-
-  useEffect(() => {
-    if (user) {
-      setProfileName(user.name);
-      setProfileEmail(user.email);
-    }
-  }, [user]);
 
   const checkCloudinaryStatus = async () => {
     try {
@@ -298,7 +289,7 @@ export default function SettingsPage() {
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Interactive sandbox documentation for all 18 authentication, expense, category, and storage endpoints
+                    Interactive sandbox documentation for all expense, category, and storage endpoints
                   </p>
                 </div>
               </div>
@@ -324,7 +315,58 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Section 4: Data Maintenance & Reset */}
+          {/* Section 4: Prisma ORM & PostgreSQL Configuration */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-card space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+                  <Database className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>Prisma ORM & PostgreSQL</span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      PostgreSQL
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Type-safe database layer with relational schemas for Categories, Expenses, and Attachments
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  Prisma v6 Active
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                <span className="text-[11px] font-semibold uppercase text-slate-400">ORM Provider</span>
+                <div className="mt-1 font-bold text-slate-900">PostgreSQL (Prisma Client)</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                <span className="text-[11px] font-semibold uppercase text-slate-400">Models</span>
+                <div className="mt-1 font-bold text-slate-900">Category, Expense, Attachment</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                <span className="text-[11px] font-semibold uppercase text-slate-400">Database Schema</span>
+                <div className="mt-1 font-bold text-slate-900">prisma/schema.prisma</div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-900 text-slate-100 font-mono text-[11px] space-y-1 overflow-x-auto">
+              <div className="text-slate-400"># Useful Prisma Terminal Commands:</div>
+              <div className="text-emerald-400">npx prisma db push        # Push schema models directly to PostgreSQL</div>
+              <div className="text-emerald-400">npx prisma db seed        # Seed initial categories into database</div>
+              <div className="text-emerald-400">npx prisma studio         # Open visual database browser in web browser</div>
+            </div>
+          </div>
+
+          {/* Section 5: Data Maintenance & Reset */}
           <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-card space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600">

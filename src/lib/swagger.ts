@@ -5,7 +5,7 @@ export const swaggerSpec = {
     version: '1.0.0',
     description: `
 **Expense Tracker API** provides complete financial management capabilities including:
-- **Authentication**: JWT-based session auth, user registration, role-based access, and 1-click demo profiles.
+- **Database & ORM**: PostgreSQL powered by Prisma ORM with type-safe schema modeling.
 - **Expenses**: Multi-currency corporate transactions with receipt attachments, status flags, and advanced filtering.
 - **Categories**: Dynamic category hierarchy with color codes, icons, and monthly budget limits.
 - **Receipt & Media Uploads**: Fast multimedia asset management integrated with Cloudinary CDN.
@@ -31,7 +31,6 @@ export const swaggerSpec = {
     },
   ],
   tags: [
-    { name: 'Authentication', description: 'User login, registration, session validation, and demo accounts' },
     { name: 'Expenses', description: 'Record, list, filter, inspect, update, and delete corporate expenses' },
     { name: 'Categories', description: 'Manage budget categories with custom colors and Lucide icons' },
     { name: 'Media & Storage', description: 'Cloudinary CDN bill uploads and storage health checks' },
@@ -39,183 +38,6 @@ export const swaggerSpec = {
     { name: 'System', description: 'Database management and sample dataset reset' },
   ],
   paths: {
-    '/api/auth/login': {
-      post: {
-        tags: ['Authentication'],
-        summary: 'User Authentication',
-        description: 'Authenticates a user with email and password, returning user details, JWT session token, and sets the `nova_auth_session` cookie.',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['email', 'password'],
-                properties: {
-                  email: { type: 'string', format: 'email', example: 'alex.morgan@fintech.io' },
-                  password: { type: 'string', format: 'password', example: 'demo1234' },
-                  rememberMe: { type: 'boolean', default: false, example: true },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          200: {
-            description: 'Authentication successful',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    user: { $ref: '#/components/schemas/User' },
-                    token: { type: 'string', example: 'eyJ1c2VySWQiOiJ1c3JfMDEi...' },
-                    message: { type: 'string', example: 'Welcome back, Alex Morgan!' },
-                  },
-                },
-              },
-            },
-          },
-          400: { $ref: '#/components/responses/BadRequest' },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          500: { $ref: '#/components/responses/ServerError' },
-        },
-      },
-    },
-    '/api/auth/register': {
-      post: {
-        tags: ['Authentication'],
-        summary: 'Create New User Account',
-        description: 'Registers a new corporate profile with name, email, password, role, and department.',
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['name', 'email', 'password'],
-                properties: {
-                  name: { type: 'string', example: 'Sarah Connor' },
-                  email: { type: 'string', format: 'email', example: 'sarah.c@company.io' },
-                  password: { type: 'string', format: 'password', minLength: 6, example: 'securePass123' },
-                  role: {
-                    type: 'string',
-                    enum: ['Finance Director', 'Lead Auditor', 'Treasury Manager', 'Executive Approver'],
-                    example: 'Treasury Manager',
-                  },
-                  department: { type: 'string', example: 'Treasury & Risk' },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          201: {
-            description: 'Account created successfully',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    user: { $ref: '#/components/schemas/User' },
-                    token: { type: 'string', example: 'eyJ1c2VySWQiOiJ1c3JfMDk...' },
-                    message: { type: 'string', example: 'Account created successfully' },
-                  },
-                },
-              },
-            },
-          },
-          400: { $ref: '#/components/responses/BadRequest' },
-          409: {
-            description: 'Email already exists',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/ErrorResponse' },
-              },
-            },
-          },
-          500: { $ref: '#/components/responses/ServerError' },
-        },
-      },
-    },
-    '/api/auth/me': {
-      get: {
-        tags: ['Authentication'],
-        summary: 'Verify Active Session',
-        description: 'Retrieves current logged-in user details from either Authorization Bearer header or HTTP cookie `nova_auth_session`.',
-        security: [{ BearerAuth: [] }],
-        responses: {
-          200: {
-            description: 'Active session details',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    user: { $ref: '#/components/schemas/User' },
-                  },
-                },
-              },
-            },
-          },
-          401: { $ref: '#/components/responses/Unauthorized' },
-          500: { $ref: '#/components/responses/ServerError' },
-        },
-      },
-    },
-    '/api/auth/logout': {
-      post: {
-        tags: ['Authentication'],
-        summary: 'Terminate Session',
-        description: 'Clears the authentication session cookie and logs the user out.',
-        responses: {
-          200: {
-            description: 'Logged out successfully',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    message: { type: 'string', example: 'Logged out successfully' },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    '/api/auth/demo-users': {
-      get: {
-        tags: ['Authentication'],
-        summary: 'List Available Demo Profiles',
-        description: 'Returns available pre-configured corporate user profiles for 1-click test authentication.',
-        responses: {
-          200: {
-            description: 'List of demo user accounts',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean', example: true },
-                    users: {
-                      type: 'array',
-                      items: { $ref: '#/components/schemas/User' },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          500: { $ref: '#/components/responses/ServerError' },
-        },
-      },
-    },
     '/api/expenses': {
       get: {
         tags: ['Expenses'],
@@ -710,27 +532,7 @@ export const swaggerSpec = {
     },
   },
   components: {
-    securitySchemes: {
-      BearerAuth: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Enter your session JWT token obtained from `/api/auth/login` or `/api/auth/register`. Alternatively, session is automatically resolved via the `nova_auth_session` cookie.',
-      },
-    },
     schemas: {
-      User: {
-        type: 'object',
-        properties: {
-          id: { type: 'string', example: 'usr_01' },
-          name: { type: 'string', example: 'Alex Morgan' },
-          email: { type: 'string', format: 'email', example: 'alex.morgan@fintech.io' },
-          role: { type: 'string', example: 'Finance Director' },
-          department: { type: 'string', example: 'Executive Management' },
-          initials: { type: 'string', example: 'AM' },
-          createdAt: { type: 'string', format: 'date-time', example: '2026-10-12T00:00:00.000Z' },
-        },
-      },
       ExpenseCategory: {
         type: 'object',
         properties: {

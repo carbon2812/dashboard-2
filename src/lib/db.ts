@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
-import mongoose from 'mongoose';
+import { prisma } from './prisma';
 import {
   Expense,
   ExpenseCategory,
@@ -10,11 +9,9 @@ import {
   CategoryBreakdownItem,
   MonthlyTrendItem,
   WeeklyTrendItem,
-  User,
-  StoredUser,
-  RegisterData,
-  UserRole,
 } from '@/types';
+
+export { prisma };
 
 // Initial Mock Seed Data
 const DEFAULT_CATEGORIES: ExpenseCategory[] = [
@@ -92,69 +89,6 @@ const DEFAULT_CATEGORIES: ExpenseCategory[] = [
 
 const DEFAULT_EXPENSES: Expense[] = [];
 
-// Helper to hash passwords consistently
-export function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password + '_nova_fintech_salt_2026').digest('hex');
-}
-
-export function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-// Initial Mock Seed Users
-export const DEFAULT_USERS: StoredUser[] = [
-  {
-    id: 'user_julian',
-    name: 'Julian Sterling',
-    email: 'julian@nova.fin',
-    role: 'Finance Director',
-    department: 'Corporate Finance & Treasury',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
-    initials: 'JS',
-    passwordHash: hashPassword('password123'),
-    createdAt: '2026-01-10T08:00:00.000Z',
-    lastLogin: new Date().toISOString(),
-  },
-  {
-    id: 'user_elena',
-    name: 'Elena Vance',
-    email: 'elena@nova.fin',
-    role: 'Senior Financial Analyst',
-    department: 'Financial Planning & Analysis',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
-    initials: 'EV',
-    passwordHash: hashPassword('password123'),
-    createdAt: '2026-01-12T08:00:00.000Z',
-    lastLogin: new Date().toISOString(),
-  },
-  {
-    id: 'user_marcus',
-    name: 'Marcus Brody',
-    email: 'marcus@nova.fin',
-    role: 'Executive Admin',
-    department: 'Operations & Infrastructure',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
-    initials: 'MB',
-    passwordHash: hashPassword('password123'),
-    createdAt: '2026-01-14T08:00:00.000Z',
-    lastLogin: new Date().toISOString(),
-  },
-  {
-    id: 'user_sophia',
-    name: 'Sophia Patel',
-    email: 'sophia@nova.fin',
-    role: 'Risk & Compliance Auditor',
-    department: 'Internal Audit & Governance',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
-    initials: 'SP',
-    passwordHash: hashPassword('password123'),
-    createdAt: '2026-01-16T08:00:00.000Z',
-    lastLogin: new Date().toISOString(),
-  },
-];
-
 // Persistent File Store path
 const DATA_DIR = path.join(process.cwd(), 'data');
 const LOCAL_DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -163,7 +97,6 @@ const DB_FILE = process.env.VERCEL ? path.join('/tmp', 'db.json') : LOCAL_DB_FIL
 interface LocalDBData {
   categories: ExpenseCategory[];
   expenses: Expense[];
-  users: StoredUser[];
 }
 
 function ensureDataFile(): LocalDBData {
@@ -182,7 +115,6 @@ function ensureDataFile(): LocalDBData {
       const initial: LocalDBData = {
         categories: DEFAULT_CATEGORIES,
         expenses: DEFAULT_EXPENSES,
-        users: DEFAULT_USERS,
       };
       fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
       return initial;
@@ -192,14 +124,10 @@ function ensureDataFile(): LocalDBData {
     const parsed = JSON.parse(raw);
     if (!parsed.categories || !Array.isArray(parsed.categories)) parsed.categories = DEFAULT_CATEGORIES;
     if (!parsed.expenses || !Array.isArray(parsed.expenses)) parsed.expenses = DEFAULT_EXPENSES;
-    if (!parsed.users || !Array.isArray(parsed.users) || parsed.users.length === 0) {
-      parsed.users = DEFAULT_USERS;
-      saveDataFile(parsed);
-    }
     return parsed;
   } catch (err) {
     console.error('Error loading local db file:', err);
-    return { categories: DEFAULT_CATEGORIES, expenses: DEFAULT_EXPENSES, users: DEFAULT_USERS };
+    return { categories: DEFAULT_CATEGORIES, expenses: DEFAULT_EXPENSES };
   }
 }
 
@@ -214,36 +142,110 @@ function saveDataFile(data: LocalDBData) {
   }
 }
 
-// Check MongoDB connection availability
-let isMongoConnected = false;
-export async function connectMongo() {
-  if (isMongoConnected || !process.env.MONGODB_URI) {
-    return isMongoConnected;
+// Check Prisma PostgreSQL connection availability
+let prismaAvailable: boolean | null = null;
+let lastPrismaCheck = 0;
+
+export async function isPrismaAvailable(): Promise<boolean> {
+  const now = Date.now();
+  if (prismaAvailable !== null && now - lastPrismaCheck < 10000) {
+    return prismaAvailable;
+  }
+  if (!process.env.DATABASE_URL) {
+    prismaAvailable = false;
+    lastPrismaCheck = now;
+    return false;
   }
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    isMongoConnected = true;
-    console.log('MongoDB successfully connected.');
+    await Promise.race([
+      prisma.$queryRaw`SELECT 1`,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1500)),
+    ]);
+    prismaAvailable = true;
+    lastPrismaCheck = now;
     return true;
-  } catch (error) {
-    console.warn('MongoDB connection failed, continuing with local persistent storage:', error);
-    isMongoConnected = false;
+  } catch {
+    prismaAvailable = false;
+    lastPrismaCheck = now;
     return false;
   }
 }
 
 // --- Category Operations ---
 export async function getCategories(): Promise<ExpenseCategory[]> {
+  if (await isPrismaAvailable()) {
+    try {
+      const records = await prisma.category.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+      return records.map((c) => ({
+        id: c.id,
+        name: c.name,
+        color: c.color,
+        icon: c.icon,
+        description: c.description || undefined,
+        budget: c.budget || undefined,
+        isDefault: c.isDefault,
+        createdAt: c.createdAt.toISOString(),
+      }));
+    } catch (err) {
+      console.warn('Prisma getCategories fallback:', err);
+    }
+  }
   const data = ensureDataFile();
   return data.categories;
 }
 
 export async function getCategoryById(id: string): Promise<ExpenseCategory | undefined> {
+  if (await isPrismaAvailable()) {
+    try {
+      const c = await prisma.category.findUnique({ where: { id } });
+      if (!c) return undefined;
+      return {
+        id: c.id,
+        name: c.name,
+        color: c.color,
+        icon: c.icon,
+        description: c.description || undefined,
+        budget: c.budget || undefined,
+        isDefault: c.isDefault,
+        createdAt: c.createdAt.toISOString(),
+      };
+    } catch (err) {
+      console.warn('Prisma getCategoryById fallback:', err);
+    }
+  }
   const data = ensureDataFile();
   return data.categories.find(c => c.id === id);
 }
 
 export async function createCategory(input: Omit<ExpenseCategory, 'id' | 'createdAt'>): Promise<ExpenseCategory> {
+  if (await isPrismaAvailable()) {
+    try {
+      const created = await prisma.category.create({
+        data: {
+          name: input.name,
+          color: input.color || '#6366f1',
+          icon: input.icon || 'Layers',
+          description: input.description,
+          budget: input.budget,
+          isDefault: input.isDefault || false,
+        },
+      });
+      return {
+        id: created.id,
+        name: created.name,
+        color: created.color,
+        icon: created.icon,
+        description: created.description || undefined,
+        budget: created.budget || undefined,
+        isDefault: created.isDefault,
+        createdAt: created.createdAt.toISOString(),
+      };
+    } catch (err) {
+      console.warn('Prisma createCategory fallback:', err);
+    }
+  }
   const data = ensureDataFile();
   const newCat: ExpenseCategory = {
     ...input,
@@ -256,6 +258,33 @@ export async function createCategory(input: Omit<ExpenseCategory, 'id' | 'create
 }
 
 export async function updateCategory(id: string, updates: Partial<ExpenseCategory>): Promise<ExpenseCategory | null> {
+  if (await isPrismaAvailable()) {
+    try {
+      const updated = await prisma.category.update({
+        where: { id },
+        data: {
+          name: updates.name,
+          color: updates.color,
+          icon: updates.icon,
+          description: updates.description,
+          budget: updates.budget,
+          isDefault: updates.isDefault,
+        },
+      });
+      return {
+        id: updated.id,
+        name: updated.name,
+        color: updated.color,
+        icon: updated.icon,
+        description: updated.description || undefined,
+        budget: updated.budget || undefined,
+        isDefault: updated.isDefault,
+        createdAt: updated.createdAt.toISOString(),
+      };
+    } catch (err) {
+      console.warn('Prisma updateCategory fallback:', err);
+    }
+  }
   const data = ensureDataFile();
   const index = data.categories.findIndex(c => c.id === id);
   if (index === -1) return null;
@@ -265,6 +294,14 @@ export async function updateCategory(id: string, updates: Partial<ExpenseCategor
 }
 
 export async function deleteCategory(id: string): Promise<boolean> {
+  if (await isPrismaAvailable()) {
+    try {
+      await prisma.category.delete({ where: { id } });
+      return true;
+    } catch (err) {
+      console.warn('Prisma deleteCategory fallback:', err);
+    }
+  }
   const data = ensureDataFile();
   const initialLength = data.categories.length;
   data.categories = data.categories.filter(c => c.id !== id);
@@ -277,21 +314,82 @@ export async function deleteCategory(id: string): Promise<boolean> {
 
 // --- Expense Operations ---
 export async function getExpenses(filters?: ExpenseFilterParams): Promise<Expense[]> {
-  const data = ensureDataFile();
-  let list = [...data.expenses];
-  const catMap = new Map(data.categories.map(c => [c.id, c]));
+  let list: Expense[] = [];
 
-  // Populate category references
-  list = list.map(exp => ({
-    ...exp,
-    category: catMap.get(exp.categoryId) || {
-      id: exp.categoryId,
-      name: 'Other',
-      color: '#94a3b8',
-      icon: 'Layers',
-      createdAt: new Date().toISOString(),
-    },
-  }));
+  if (await isPrismaAvailable()) {
+    try {
+      const records = await prisma.expense.findMany({
+        include: {
+          category: true,
+          attachment: true,
+        },
+        orderBy: {
+          date: 'desc',
+        },
+      });
+
+      list = records.map((e) => ({
+        id: e.id,
+        amount: e.amount,
+        currency: e.currency,
+        categoryId: e.categoryId,
+        category: e.category
+          ? {
+              id: e.category.id,
+              name: e.category.name,
+              color: e.category.color,
+              icon: e.category.icon,
+              description: e.category.description || undefined,
+              budget: e.category.budget || undefined,
+              isDefault: e.category.isDefault,
+              createdAt: e.category.createdAt.toISOString(),
+            }
+          : undefined,
+        date: e.date,
+        description: e.description,
+        merchant: e.merchant || undefined,
+        paymentMethod: e.paymentMethod as any,
+        status: e.status as any,
+        attachment: e.attachment
+          ? {
+              id: e.attachment.id,
+              name: e.attachment.name,
+              mimeType: e.attachment.mimeType,
+              size: e.attachment.size,
+              cloudinaryPublicId: e.attachment.cloudinaryPublicId || undefined,
+              cloudinaryUrl: e.attachment.cloudinaryUrl || undefined,
+              driveFileId: e.attachment.driveFileId || undefined,
+              driveViewLink: e.attachment.driveViewLink || undefined,
+              driveDownloadLink: e.attachment.driveDownloadLink || undefined,
+              thumbnailUrl: e.attachment.thumbnailUrl || undefined,
+              localUrl: e.attachment.localUrl || undefined,
+            }
+          : null,
+        createdAt: e.createdAt.toISOString(),
+        updatedAt: e.updatedAt.toISOString(),
+      }));
+    } catch (err) {
+      console.warn('Prisma getExpenses fallback:', err);
+    }
+  }
+
+  if (list.length === 0) {
+    const data = ensureDataFile();
+    list = [...data.expenses];
+    const catMap = new Map(data.categories.map(c => [c.id, c]));
+
+    // Populate category references
+    list = list.map(exp => ({
+      ...exp,
+      category: catMap.get(exp.categoryId) || {
+        id: exp.categoryId,
+        name: 'Other',
+        color: '#94a3b8',
+        icon: 'Layers',
+        createdAt: new Date().toISOString(),
+      },
+    }));
+  }
 
   if (!filters) {
     return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -359,6 +457,86 @@ export async function getExpenseById(id: string): Promise<Expense | undefined> {
 }
 
 export async function createExpense(input: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'>): Promise<Expense> {
+  if (await isPrismaAvailable()) {
+    try {
+      const created = await prisma.expense.create({
+        data: {
+          amount: input.amount,
+          currency: input.currency || 'INR',
+          categoryId: input.categoryId,
+          date: input.date,
+          description: input.description,
+          merchant: input.merchant,
+          paymentMethod: input.paymentMethod || 'Corporate Card',
+          status: input.status || 'Approved',
+          attachment: input.attachment
+            ? {
+                create: {
+                  name: input.attachment.name,
+                  mimeType: input.attachment.mimeType,
+                  size: input.attachment.size,
+                  cloudinaryPublicId: input.attachment.cloudinaryPublicId,
+                  cloudinaryUrl: input.attachment.cloudinaryUrl,
+                  driveFileId: input.attachment.driveFileId,
+                  driveViewLink: input.attachment.driveViewLink,
+                  driveDownloadLink: input.attachment.driveDownloadLink,
+                  thumbnailUrl: input.attachment.thumbnailUrl,
+                  localUrl: input.attachment.localUrl,
+                },
+              }
+            : undefined,
+        },
+        include: {
+          category: true,
+          attachment: true,
+        },
+      });
+
+      return {
+        id: created.id,
+        amount: created.amount,
+        currency: created.currency,
+        categoryId: created.categoryId,
+        category: created.category
+          ? {
+              id: created.category.id,
+              name: created.category.name,
+              color: created.category.color,
+              icon: created.category.icon,
+              description: created.category.description || undefined,
+              budget: created.category.budget || undefined,
+              isDefault: created.category.isDefault,
+              createdAt: created.category.createdAt.toISOString(),
+            }
+          : undefined,
+        date: created.date,
+        description: created.description,
+        merchant: created.merchant || undefined,
+        paymentMethod: created.paymentMethod as any,
+        status: created.status as any,
+        attachment: created.attachment
+          ? {
+              id: created.attachment.id,
+              name: created.attachment.name,
+              mimeType: created.attachment.mimeType,
+              size: created.attachment.size,
+              cloudinaryPublicId: created.attachment.cloudinaryPublicId || undefined,
+              cloudinaryUrl: created.attachment.cloudinaryUrl || undefined,
+              driveFileId: created.attachment.driveFileId || undefined,
+              driveViewLink: created.attachment.driveViewLink || undefined,
+              driveDownloadLink: created.attachment.driveDownloadLink || undefined,
+              thumbnailUrl: created.attachment.thumbnailUrl || undefined,
+              localUrl: created.attachment.localUrl || undefined,
+            }
+          : null,
+        createdAt: created.createdAt.toISOString(),
+        updatedAt: created.updatedAt.toISOString(),
+      };
+    } catch (err) {
+      console.warn('Prisma createExpense fallback:', err);
+    }
+  }
+
   const data = ensureDataFile();
   const id = `exp_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const now = new Date().toISOString();
@@ -380,6 +558,70 @@ export async function createExpense(input: Omit<Expense, 'id' | 'createdAt' | 'u
 }
 
 export async function updateExpense(id: string, updates: Partial<Expense>): Promise<Expense | null> {
+  if (await isPrismaAvailable()) {
+    try {
+      const updated = await prisma.expense.update({
+        where: { id },
+        data: {
+          amount: updates.amount,
+          categoryId: updates.categoryId,
+          date: updates.date,
+          description: updates.description,
+          merchant: updates.merchant,
+          paymentMethod: updates.paymentMethod,
+          status: updates.status,
+        },
+        include: {
+          category: true,
+          attachment: true,
+        },
+      });
+
+      return {
+        id: updated.id,
+        amount: updated.amount,
+        currency: updated.currency,
+        categoryId: updated.categoryId,
+        category: updated.category
+          ? {
+              id: updated.category.id,
+              name: updated.category.name,
+              color: updated.category.color,
+              icon: updated.category.icon,
+              description: updated.category.description || undefined,
+              budget: updated.category.budget || undefined,
+              isDefault: updated.category.isDefault,
+              createdAt: updated.category.createdAt.toISOString(),
+            }
+          : undefined,
+        date: updated.date,
+        description: updated.description,
+        merchant: updated.merchant || undefined,
+        paymentMethod: updated.paymentMethod as any,
+        status: updated.status as any,
+        attachment: updated.attachment
+          ? {
+              id: updated.attachment.id,
+              name: updated.attachment.name,
+              mimeType: updated.attachment.mimeType,
+              size: updated.attachment.size,
+              cloudinaryPublicId: updated.attachment.cloudinaryPublicId || undefined,
+              cloudinaryUrl: updated.attachment.cloudinaryUrl || undefined,
+              driveFileId: updated.attachment.driveFileId || undefined,
+              driveViewLink: updated.attachment.driveViewLink || undefined,
+              driveDownloadLink: updated.attachment.driveDownloadLink || undefined,
+              thumbnailUrl: updated.attachment.thumbnailUrl || undefined,
+              localUrl: updated.attachment.localUrl || undefined,
+            }
+          : null,
+        createdAt: updated.createdAt.toISOString(),
+        updatedAt: updated.updatedAt.toISOString(),
+      };
+    } catch (err) {
+      console.warn('Prisma updateExpense fallback:', err);
+    }
+  }
+
   const data = ensureDataFile();
   const index = data.expenses.findIndex(e => e.id === id);
   if (index === -1) return null;
@@ -396,6 +638,15 @@ export async function updateExpense(id: string, updates: Partial<Expense>): Prom
 }
 
 export async function deleteExpense(id: string): Promise<boolean> {
+  if (await isPrismaAvailable()) {
+    try {
+      await prisma.expense.delete({ where: { id } });
+      return true;
+    } catch (err) {
+      console.warn('Prisma deleteExpense fallback:', err);
+    }
+  }
+
   const data = ensureDataFile();
   const initialLength = data.expenses.length;
   data.expenses = data.expenses.filter(e => e.id !== id);
@@ -527,113 +778,18 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   };
 }
 
-// --- User & Authentication Operations ---
-
-// Strip sensitive passwordHash before returning to clients
-function sanitizeUser(stored: StoredUser): User {
-  const { passwordHash: _hash, ...user } = stored;
-  return user;
-}
-
-export async function getUsers(): Promise<User[]> {
-  const data = ensureDataFile();
-  return data.users.map(sanitizeUser);
-}
-
-export async function getUserById(id: string): Promise<User | undefined> {
-  const data = ensureDataFile();
-  const found = data.users.find(u => u.id === id);
-  return found ? sanitizeUser(found) : undefined;
-}
-
-export async function getUserByEmail(email: string): Promise<StoredUser | undefined> {
-  const data = ensureDataFile();
-  return data.users.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
-}
-
-export async function authenticateUser(email: string, password: string): Promise<User | null> {
-  const data = ensureDataFile();
-  const cleanEmail = email.toLowerCase().trim();
-  const user = data.users.find(u => u.email.toLowerCase() === cleanEmail);
-
-  if (!user) {
-    return null;
-  }
-
-  const inputHash = hashPassword(password);
-  // Also support demo password matching "password123" for demo seeds
-  const isValid = user.passwordHash === inputHash || (password === 'password123' && user.id.startsWith('user_'));
-
-  if (!isValid) {
-    return null;
-  }
-
-  // Update last login
-  user.lastLogin = new Date().toISOString();
-  saveDataFile(data);
-
-  return sanitizeUser(user);
-}
-
-export async function createUser(input: RegisterData): Promise<User> {
-  const data = ensureDataFile();
-  const cleanEmail = input.email.toLowerCase().trim();
-
-  // Check existing
-  if (data.users.some(u => u.email.toLowerCase() === cleanEmail)) {
-    throw new Error('An account with this email address already exists.');
-  }
-
-  const id = `user_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-  const now = new Date().toISOString();
-  const initials = getInitials(input.name);
-
-  // Pick a polished background avatar
-  const avatarColors = [
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
-  ];
-  const avatar = avatarColors[Math.floor(Math.random() * avatarColors.length)];
-
-  const newUser: StoredUser = {
-    id,
-    name: input.name.trim(),
-    email: cleanEmail,
-    role: (input.role as UserRole) || 'Finance Director',
-    department: input.department?.trim() || 'Finance & Accounts',
-    avatar,
-    initials,
-    passwordHash: hashPassword(input.password),
-    createdAt: now,
-    lastLogin: now,
-  };
-
-  data.users.unshift(newUser);
-  saveDataFile(data);
-
-  return sanitizeUser(newUser);
-}
-
-export async function updateUser(id: string, updates: Partial<User>): Promise<User | null> {
-  const data = ensureDataFile();
-  const idx = data.users.findIndex(u => u.id === id);
-  if (idx === -1) return null;
-
-  data.users[idx] = {
-    ...data.users[idx],
-    ...updates,
-    id: data.users[idx].id, // protect immutable ID
-  };
-  saveDataFile(data);
-  return sanitizeUser(data.users[idx]);
-}
-
 export async function resetDemoData(): Promise<void> {
+  if (await isPrismaAvailable()) {
+    try {
+      await prisma.attachment.deleteMany({});
+      await prisma.expense.deleteMany({});
+    } catch (err) {
+      console.warn('Prisma resetDemoData error:', err);
+    }
+  }
   const initial: LocalDBData = {
     categories: DEFAULT_CATEGORIES,
     expenses: DEFAULT_EXPENSES,
-    users: DEFAULT_USERS,
   };
   saveDataFile(initial);
 }
