@@ -19,19 +19,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Fallback initial demo user if clean boot
-const DEFAULT_FALLBACK_USER: User = {
-  id: 'user_julian',
-  name: 'Julian Sterling',
-  email: 'julian@nova.fin',
-  role: 'Finance Director',
-  department: 'Corporate Finance & Treasury',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
-  initials: 'JS',
-  createdAt: '2026-01-10T08:00:00.000Z',
-  lastLogin: '2026-05-18T10:00:00.000Z',
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -75,12 +62,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(JSON.parse(saved));
           setToken(savedToken);
         } catch {
-          setUser(DEFAULT_FALLBACK_USER);
+          setUser(null);
         }
       } else {
-        // Set default session for seamless first run
-        setUser(DEFAULT_FALLBACK_USER);
-        localStorage.setItem('nova_user', JSON.stringify(DEFAULT_FALLBACK_USER));
+        setUser(null);
       }
     }
   }, []);

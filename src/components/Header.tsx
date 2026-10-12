@@ -76,9 +76,15 @@ export function Header({
           className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-xs font-semibold text-slate-700 transition-colors"
           title={user ? `Signed in as ${user.name} (${user.role})` : 'Sign In'}
         >
-          <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center">
-            {user?.initials || 'ME'}
-          </div>
+          {user ? (
+            <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-[10px] flex items-center justify-center">
+              {user.initials}
+            </div>
+          ) : (
+            <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-600 font-bold text-[10px] flex items-center justify-center">
+              ?
+            </div>
+          )}
           <span className="hidden xl:inline">{user?.name ? user.name.split(' ')[0] : 'Sign In'}</span>
         </Link>
 

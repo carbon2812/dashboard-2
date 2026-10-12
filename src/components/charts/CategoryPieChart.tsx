@@ -29,15 +29,16 @@ export function CategoryPieChart({ data, totalExpenses }: CategoryPieChartProps)
     return <div className="h-64 flex items-center justify-center text-slate-300">Loading chart...</div>;
   }
 
-  if (!data || data.length === 0) {
+  const chartData = (data || []).filter(d => d.total > 0);
+
+  if (!data || data.length === 0 || chartData.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-slate-400 text-sm">
-        No category expense data available
+      <div className="h-64 flex flex-col items-center justify-center text-slate-400 text-sm gap-1.5 p-4 text-center">
+        <span className="font-medium text-slate-600">No expenses recorded yet</span>
+        <span className="text-xs text-slate-400">Log a disbursement to view category breakdown</span>
       </div>
     );
   }
-
-  const chartData = data.filter(d => d.total > 0);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {

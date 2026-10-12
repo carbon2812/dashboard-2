@@ -43,8 +43,8 @@ export default function LoginPage() {
   const [resetSent, setResetSent] = useState(false);
 
   // Sign In Form State
-  const [signInEmail, setSignInEmail] = useState('julian@nova.fin');
-  const [signInPassword, setSignInPassword] = useState('password123');
+  const [signInEmail, setSignInEmail] = useState('');
+  const [signInPassword, setSignInPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
 
   // Sign Up Form State
@@ -254,11 +254,11 @@ export default function LoginPage() {
                   <TrendingUp className="w-4 h-4" />
                 </div>
                 <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                  +18.4% YoY
+                  Real-Time
                 </span>
               </div>
-              <div className="text-lg font-bold text-white">₹14.8M+</div>
-              <div className="text-xs text-slate-400 mt-0.5">Corporate disbursements audited</div>
+              <div className="text-lg font-bold text-white">Spend Control</div>
+              <div className="text-xs text-slate-400 mt-0.5">Automated multi-currency audit</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800/80 backdrop-blur-md hover:border-slate-700 transition-all">

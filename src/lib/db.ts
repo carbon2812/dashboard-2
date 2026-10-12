@@ -90,202 +90,7 @@ const DEFAULT_CATEGORIES: ExpenseCategory[] = [
   },
 ];
 
-// Helper to get formatted date string for current month
-const getRelativeDate = (daysAgo: number): string => {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
-  return d.toISOString().split('T')[0];
-};
-
-const DEFAULT_EXPENSES: Expense[] = [
-  {
-    id: 'exp_01',
-    amount: 248000.00,
-    currency: 'INR',
-    categoryId: 'cat_tech',
-    date: getRelativeDate(1),
-    description: 'Amazon Web Services Production Cluster & RDS Postgres Hosting',
-    merchant: 'AWS Cloud Services',
-    paymentMethod: 'Corporate Card',
-    status: 'Approved',
-    attachment: {
-      id: 'att_aws',
-      name: 'AWS-Invoice-May2026-INV-99321.pdf',
-      mimeType: 'application/pdf',
-      size: 245760,
-      driveFileId: '1aBcD_aws_invoice_sample_drive_id',
-      driveViewLink: 'https://drive.google.com/file/d/sample-aws-invoice',
-      driveDownloadLink: 'https://drive.google.com/uc?export=download&id=sample-aws',
-      localUrl: '/uploads/sample-invoice.pdf',
-    },
-    createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
-  },
-  {
-    id: 'exp_02',
-    amount: 142050.00,
-    currency: 'INR',
-    categoryId: 'cat_travel',
-    date: getRelativeDate(2),
-    description: 'Roundtrip Flights to San Francisco for Fintech Summit 2026',
-    merchant: 'Delta Air Lines',
-    paymentMethod: 'Corporate Card',
-    status: 'Approved',
-    attachment: {
-      id: 'att_delta',
-      name: 'Delta-Flight-Ticket-DL4402.png',
-      mimeType: 'image/png',
-      size: 420100,
-      driveFileId: '1dEfG_delta_boarding_pass_drive_id',
-      driveViewLink: 'https://drive.google.com/file/d/sample-delta',
-      driveDownloadLink: 'https://drive.google.com/uc?export=download&id=sample-delta',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1540339832862-474599807836?w=400&auto=format&fit=crop&q=80',
-      localUrl: 'https://images.unsplash.com/photo-1540339832862-474599807836?w=800&auto=format&fit=crop&q=80',
-    },
-    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-  },
-  {
-    id: 'exp_03',
-    amount: 320000.00,
-    currency: 'INR',
-    categoryId: 'cat_marketing',
-    date: getRelativeDate(3),
-    description: 'Google Ads Paid Search & Retargeting Campaign Q2',
-    merchant: 'Google Ads EMEA',
-    paymentMethod: 'ACH',
-    status: 'Approved',
-    attachment: {
-      id: 'att_gads',
-      name: 'Google-Ads-Statement-May.pdf',
-      mimeType: 'application/pdf',
-      size: 312000,
-      driveFileId: '1gHiJ_gads_receipt_drive_id',
-      driveViewLink: 'https://drive.google.com/file/d/sample-gads',
-      driveDownloadLink: 'https://drive.google.com/uc?export=download&id=sample-gads',
-      localUrl: '/uploads/sample-invoice.pdf',
-    },
-    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-  },
-  {
-    id: 'exp_04',
-    amount: 85075.00,
-    currency: 'INR',
-    categoryId: 'cat_client',
-    date: getRelativeDate(4),
-    description: 'Strategic Investor Dinner & Client Welcome Tasting Menu',
-    merchant: 'Nobu Downtown NYC',
-    paymentMethod: 'Corporate Card',
-    status: 'Approved',
-    attachment: {
-      id: 'att_nobu',
-      name: 'Nobu-Dinner-Receipt-May08.jpg',
-      mimeType: 'image/jpeg',
-      size: 512400,
-      driveFileId: '1jKlM_nobu_receipt_drive_id',
-      driveViewLink: 'https://drive.google.com/file/d/sample-nobu',
-      driveDownloadLink: 'https://drive.google.com/uc?export=download&id=sample-nobu',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&auto=format&fit=crop&q=80',
-      localUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80',
-    },
-    createdAt: new Date(Date.now() - 4 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 4 * 86400000).toISOString(),
-  },
-  {
-    id: 'exp_05',
-    amount: 195000.00,
-    currency: 'INR',
-    categoryId: 'cat_office',
-    date: getRelativeDate(6),
-    description: 'Dedicated Private Office Lease & Enterprise Fiber Connectivity',
-    merchant: 'WeWork Global Spaces',
-    paymentMethod: 'Wire Transfer',
-    status: 'Approved',
-    attachment: {
-      id: 'att_wework',
-      name: 'WeWork-Space-Agreement.docx',
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      size: 154000,
-      driveFileId: '1nOpQ_wework_contract_drive_id',
-      driveViewLink: 'https://drive.google.com/file/d/sample-wework',
-      driveDownloadLink: 'https://drive.google.com/uc?export=download&id=sample-wework',
-      localUrl: '/uploads/sample-contract.docx',
-    },
-    createdAt: new Date(Date.now() - 6 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 6 * 86400000).toISOString(),
-  },
-  {
-    id: 'exp_06',
-    amount: 45000.00,
-    currency: 'INR',
-    categoryId: 'cat_tech',
-    date: getRelativeDate(8),
-    description: 'Figma Organization Seats & FigJam Team License Renewal',
-    merchant: 'Figma Inc.',
-    paymentMethod: 'Corporate Card',
-    status: 'Approved',
-    attachment: {
-      id: 'att_figma',
-      name: 'Figma-Renewal-Invoice-2026.pdf',
-      mimeType: 'application/pdf',
-      size: 182000,
-      driveFileId: '1qRsT_figma_invoice_drive_id',
-      driveViewLink: 'https://drive.google.com/file/d/sample-figma',
-      driveDownloadLink: 'https://drive.google.com/uc?export=download&id=sample-figma',
-      localUrl: '/uploads/sample-invoice.pdf',
-    },
-    createdAt: new Date(Date.now() - 8 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 8 * 86400000).toISOString(),
-  },
-  {
-    id: 'exp_07',
-    amount: 185000.00,
-    currency: 'INR',
-    categoryId: 'cat_legal',
-    date: getRelativeDate(11),
-    description: 'Q2 Compliance Review & FinTech Regulation Filing Counsel',
-    merchant: 'Wilson Sonsini Goodrich & Rosati',
-    paymentMethod: 'Wire Transfer',
-    status: 'Approved',
-    attachment: {
-      id: 'att_legal_counsel',
-      name: 'WSGR-Retainer-Billing-May.pdf',
-      mimeType: 'application/pdf',
-      size: 610000,
-      driveFileId: '1uVwX_legal_bill_drive_id',
-      driveViewLink: 'https://drive.google.com/file/d/sample-wsgr',
-      driveDownloadLink: 'https://drive.google.com/uc?export=download&id=sample-wsgr',
-      localUrl: '/uploads/sample-invoice.pdf',
-    },
-    createdAt: new Date(Date.now() - 11 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 11 * 86400000).toISOString(),
-  },
-  {
-    id: 'exp_08',
-    amount: 14520.00,
-    currency: 'INR',
-    categoryId: 'cat_transport',
-    date: getRelativeDate(12),
-    description: 'Executive Airport Transit & Meeting Transfers',
-    merchant: 'Uber for Business',
-    paymentMethod: 'Corporate Card',
-    status: 'Approved',
-    attachment: {
-      id: 'att_uber',
-      name: 'Uber-Business-Receipt-May02.png',
-      mimeType: 'image/png',
-      size: 290000,
-      driveFileId: '1yZaB_uber_receipt_drive_id',
-      driveViewLink: 'https://drive.google.com/file/d/sample-uber',
-      driveDownloadLink: 'https://drive.google.com/uc?export=download&id=sample-uber',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&auto=format&fit=crop&q=80',
-      localUrl: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&auto=format&fit=crop&q=80',
-    },
-    createdAt: new Date(Date.now() - 12 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 12 * 86400000).toISOString(),
-  },
-];
+const DEFAULT_EXPENSES: Expense[] = [];
 
 // Helper to hash passwords consistently
 export function hashPassword(password: string): string {
@@ -627,7 +432,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   const monthlyGrowth = lastMonthExpenses > 0
     ? Number((((currentMonthExpenses - lastMonthExpenses) / lastMonthExpenses) * 100).toFixed(1))
-    : 4.8; // Realistic baseline if earlier data hasn't accumulated
+    : 0;
 
   // Category breakdown
   const categoryTotals: Record<string, { total: number; count: number }> = {};
@@ -676,12 +481,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .filter(e => e.date.startsWith(mStr))
       .reduce((s, e) => s + e.amount, 0);
 
-    // Provide realistic baseline for past months if sparse
-    const baseline = monthSum > 0 ? monthSum : Math.round(7500 + Math.sin(i * 1.5) * 2200);
     monthlyTrends.push({
       month: mName,
-      amount: Number(baseline.toFixed(2)),
-      previousYear: Number((baseline * 0.88).toFixed(2)),
+      amount: Number(monthSum.toFixed(2)),
+      previousYear: 0,
     });
   }
 

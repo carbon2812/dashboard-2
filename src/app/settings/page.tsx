@@ -21,9 +21,11 @@ import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { DriveStatus } from '@/types';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SettingsPage() {
   const { success, error: toastError, info } = useToast();
+  const { user } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [driveStatus, setDriveStatus] = useState<DriveStatus | null>(null);
@@ -32,9 +34,16 @@ export default function SettingsPage() {
   const [copiedKey, setCopiedKey] = useState(false);
 
   // Profile Form state
-  const [profileName, setProfileName] = useState('Julian Sterling');
-  const [profileEmail, setProfileEmail] = useState('julian.sterling@apexfin.com');
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [profileEmail, setProfileEmail] = useState(user?.email || '');
   const [currency, setCurrency] = useState('INR (₹)');
+
+  useEffect(() => {
+    if (user) {
+      setProfileName(user.name);
+      setProfileEmail(user.email);
+    }
+  }, [user]);
 
   const checkDriveStatus = async () => {
     try {
@@ -83,15 +92,15 @@ export default function SettingsPage() {
   };
 
   const handleResetData = async () => {
-    if (!confirm('Reset all expenses and categories back to sample fintech defaults?')) return;
+    if (!confirm('Are you sure you want to clear all expenses and reset transactions?')) return;
     try {
       const res = await fetch('/api/reset', { method: 'POST' });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error);
 
-      success('Data Reset', 'Demo transactions and categories restored.');
+      success('Data Cleared', 'All expenses cleared from database.');
     } catch (err: any) {
-      toastError('Reset Failed', err.message);
+      toastError('Action Failed', err.message);
     }
   };
 
@@ -290,9 +299,9 @@ export default function SettingsPage() {
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
               <div>
-                <div className="text-sm font-bold text-slate-900">Reset Demo Transactions</div>
+                <div className="text-sm font-bold text-slate-900">Clear All Expenses</div>
                 <div className="text-xs text-slate-500">
-                  Resets the database to clean fintech seed transactions, sample bills, and categories.
+                  Empties all recorded expense transactions while keeping your categories intact.
                 </div>
               </div>
 
@@ -300,7 +309,7 @@ export default function SettingsPage() {
                 onClick={handleResetData}
                 className="px-4 py-2 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 text-rose-700 text-xs font-semibold transition-colors shrink-0"
               >
-                Reset Demo Data
+                Clear All Expenses
               </button>
             </div>
           </div>
