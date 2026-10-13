@@ -8,7 +8,7 @@ export const swaggerSpec = {
 - **Database & ORM**: PostgreSQL powered by Prisma ORM with type-safe schema modeling.
 - **Expenses**: Multi-currency corporate transactions with receipt attachments, status flags, and advanced filtering.
 - **Categories**: Dynamic category hierarchy with color codes, icons, and monthly budget limits.
-- **Receipt & Media Uploads**: Fast multimedia asset management stored locally on VPS with Docker volume persistence.
+- **Receipt & Media Uploads**: Fast multimedia asset management stored with high-speed persistence.
 - **Analytics & Intelligence**: Real-time spending velocity, budget utilization, category breakdowns, and monthly/weekly trends.
     `,
     contact: {
@@ -46,7 +46,7 @@ export const swaggerSpec = {
     { name: 'Authentication', description: 'User registration, login authentication, and JWT session verification' },
     { name: 'Expenses', description: 'Record, list, filter, inspect, update, and delete corporate expenses' },
     { name: 'Categories', description: 'Manage budget categories with custom colors and Lucide icons' },
-    { name: 'Media & Storage', description: 'VPS Local Storage bill uploads and storage health checks' },
+    { name: 'Media & Storage', description: 'Secure Local Storage bill uploads and storage health checks' },
     { name: 'Analytics', description: 'Executive metrics, spending trends, and budget tracking' },
     { name: 'System', description: 'Database management, health checks, and sample dataset reset' },
   ],
@@ -557,7 +557,7 @@ export const swaggerSpec = {
       post: {
         tags: ['Media & Storage'],
         summary: 'Upload Receipt / Bill Document',
-        description: 'Uploads a receipt image (JPG, PNG, WebP) or document (PDF) to VPS local disk storage (/uploads) backed by Docker volume persistence.',
+        description: 'Uploads a receipt image (JPG, PNG, WebP) or document (PDF) to local disk storage (/uploads) backed by persistent storage.',
         requestBody: {
           required: true,
           content: {
@@ -601,10 +601,10 @@ export const swaggerSpec = {
       get: {
         tags: ['Media & Storage'],
         summary: 'Storage Health & Diagnostics Status',
-        description: 'Returns real-time status of VPS local disk storage, directory, max file size, and total file count.',
+        description: 'Returns real-time status of local disk storage, directory, max file size, and total file count.',
         responses: {
           200: {
-            description: 'VPS Storage status report',
+            description: 'Storage status report',
             content: {
               'application/json': {
                 schema: {
@@ -826,7 +826,7 @@ export const swaggerSpec = {
       StorageStatus: {
         type: 'object',
         properties: {
-          provider: { type: 'string', example: 'VPS Local Storage' },
+          provider: { type: 'string', example: 'Verified Local Storage' },
           uploadDir: { type: 'string', example: 'backend/uploads/' },
           maxFileSize: { type: 'string', example: '10MB' },
           allowedTypes: {
@@ -835,7 +835,7 @@ export const swaggerSpec = {
             example: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
           },
           totalFiles: { type: 'integer', example: 12 },
-          message: { type: 'string', example: 'VPS Local Disk Storage is active and persistent via Docker volume' },
+          message: { type: 'string', example: 'Local Storage is active with persistent storage' },
         },
       },
       ErrorResponse: {

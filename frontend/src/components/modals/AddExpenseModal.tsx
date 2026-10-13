@@ -47,7 +47,7 @@ export function AddExpenseModal({
   const [merchant, setMerchant] = useState('');
   const [description, setDescription] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Corporate Card');
-  
+
   // File Upload State
   const [attachment, setAttachment] = useState<ExpenseAttachment | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -254,9 +254,8 @@ export function AddExpenseModal({
                     placeholder="0.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className={`w-full pl-8 pr-4 py-2.5 rounded-xl border text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all ${
-                      validationErrors.amount ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200 bg-white'
-                    }`}
+                    className={`w-full pl-8 pr-4 py-2.5 rounded-xl border text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all ${validationErrors.amount ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200 bg-white'
+                      }`}
                   />
                 </div>
                 {validationErrors.amount && (
@@ -275,9 +274,8 @@ export function AddExpenseModal({
                     placeholder="e.g. AWS, Stripe, Uber"
                     value={merchant}
                     onChange={(e) => setMerchant(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all ${
-                      validationErrors.merchant ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200 bg-white'
-                    }`}
+                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all ${validationErrors.merchant ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200 bg-white'
+                      }`}
                   />
                 </div>
                 {validationErrors.merchant && (
@@ -310,7 +308,7 @@ export function AddExpenseModal({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Disbursement Date <span className="text-rose-500">*</span>
+                  Billing Date <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -339,11 +337,10 @@ export function AddExpenseModal({
                       type="button"
                       key={method}
                       onClick={() => setPaymentMethod(method)}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all truncate ${
-                        paymentMethod === method
+                      className={`px-3 py-2 rounded-xl text-xs font-medium border text-left transition-all truncate ${paymentMethod === method
                           ? 'bg-indigo-50/80 border-indigo-300 text-indigo-700 font-semibold'
                           : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
+                        }`}
                     >
                       {method}
                     </button>
@@ -385,11 +382,10 @@ export function AddExpenseModal({
                   onDragOver={handleDrag}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all ${
-                    dragActive
+                  className={`border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all ${dragActive
                       ? 'border-indigo-500 bg-indigo-50/50'
                       : 'border-slate-200 hover:border-indigo-400 bg-slate-50/50'
-                  }`}
+                    }`}
                 >
                   <input
                     ref={fileInputRef}

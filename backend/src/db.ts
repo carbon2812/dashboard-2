@@ -9,6 +9,9 @@ import {
   CategoryBreakdownItem,
   MonthlyTrendItem,
   WeeklyTrendItem,
+  Employee,
+  SalaryPayment,
+  PayrollStats,
 } from './types';
 
 export { prisma };
@@ -97,6 +100,8 @@ const DB_FILE = process.env.VERCEL ? path.join('/tmp', 'db.json') : LOCAL_DB_FIL
 interface LocalDBData {
   categories: ExpenseCategory[];
   expenses: Expense[];
+  employees?: Employee[];
+  salaryPayments?: SalaryPayment[];
 }
 
 function ensureDataFile(): LocalDBData {
@@ -124,6 +129,8 @@ function ensureDataFile(): LocalDBData {
     const parsed = JSON.parse(raw);
     if (!parsed.categories || !Array.isArray(parsed.categories)) parsed.categories = DEFAULT_CATEGORIES;
     if (!parsed.expenses || !Array.isArray(parsed.expenses)) parsed.expenses = DEFAULT_EXPENSES;
+    if (!parsed.employees || !Array.isArray(parsed.employees)) parsed.employees = [];
+    if (!parsed.salaryPayments || !Array.isArray(parsed.salaryPayments)) parsed.salaryPayments = [];
     return parsed;
   } catch (err) {
     console.error('Error loading local db file:', err);
@@ -750,6 +757,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   // Recent 6 expenses with category details
   const allWithCat = await getExpenses();
   const recentExpenses = allWithCat.slice(0, 6);
+  const payrollStats = await getPayrollStats();
 
   return {
     totalExpenses: Number(totalExpenses.toFixed(2)),
@@ -762,6 +770,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     monthlyTrends,
     weeklyTrends,
     recentExpenses,
+    payrollStats,
   };
 }
 
@@ -889,4 +898,404 @@ export async function createUser(input: {
   fileUsers.push(newUser);
   saveUsersFile(fileUsers);
   return newUser;
+}
+
+// -------------------------------------------------------------
+// Employee Management Operations (PostgreSQL Prisma + Local JSON)
+// -------------------------------------------------------------
+export async function getEmployees(): Promise<Employee[]> {
+  if (await isPrismaAvailable()) {
+    try {
+      const records = await (prisma as any).employee.findMany({
+        include: {
+          salaryPayments: {
+            orderBy: { paymentDate: 'desc' },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      return records.map((emp: any) => ({
+        id: emp.id,
+        name: emp.name,
+        email: emp.email || undefined,
+        phone: emp.phone || undefined,
+        department: emp.department,
+        designation: emp.designation,
+        baseSalary: emp.baseSalary,
+        status: emp.status as any,
+        joinDate: emp.joinDate,
+        avatar: emp.avatar || undefined,
+        createdAt: emp.createdAt.toISOString(),
+        updatedAt: emp.updatedAt ? emp.updatedAt.toISOString() : undefined,
+        salaryPayments: (emp.salaryPayments || []).map((sp: any) => ({
+          id: sp.id,
+          employeeId: sp.employeeId,
+          month: sp.month,
+          baseSalary: sp.baseSalary,
+          bonus: sp.bonus,
+          deductions: sp.deductions,
+          netSalary: sp.netSalary,
+          paymentDate: sp.paymentDate,
+          paymentMethod: sp.paymentMethod,
+          status: sp.status as any,
+          notes: sp.notes || undefined,
+          createdAt: sp.createdAt.toISOString(),
+          updatedAt: sp.updatedAt ? sp.updatedAt.toISOString() : undefined,
+        })),
+      }));
+    } catch (err) {
+      console.warn('Prisma getEmployees fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  const employees = data.employees || [];
+  const payments = data.salaryPayments || [];
+  return employees.map((emp) => ({
+    ...emp,
+    salaryPayments: payments
+      .filter((sp) => sp.employeeId === emp.id)
+      .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()),
+  }));
+}
+
+export async function getEmployeeById(id: string): Promise<Employee | null> {
+  const all = await getEmployees();
+  return all.find((e) => e.id === id) || null;
+}
+
+export async function createEmployee(
+  input: Omit<Employee, 'id' | 'createdAt' | 'updatedAt' | 'salaryPayments'>
+): Promise<Employee> {
+  if (await isPrismaAvailable()) {
+    try {
+      const created = await (prisma as any).employee.create({
+        data: {
+          name: input.name.trim(),
+          email: input.email ? input.email.trim().toLowerCase() : null,
+          phone: input.phone ? input.phone.trim() : null,
+          department: input.department || 'Engineering',
+          designation: input.designation || 'Software Engineer',
+          baseSalary: Number(input.baseSalary) || 0,
+          status: input.status || 'Active',
+          joinDate: input.joinDate || new Date().toISOString().split('T')[0],
+          avatar: input.avatar || null,
+        },
+      });
+      return {
+        id: created.id,
+        name: created.name,
+        email: created.email || undefined,
+        phone: created.phone || undefined,
+        department: created.department,
+        designation: created.designation,
+        baseSalary: created.baseSalary,
+        status: created.status as any,
+        joinDate: created.joinDate,
+        avatar: created.avatar || undefined,
+        createdAt: created.createdAt.toISOString(),
+        updatedAt: created.updatedAt ? created.updatedAt.toISOString() : undefined,
+        salaryPayments: [],
+      };
+    } catch (err) {
+      console.warn('Prisma createEmployee fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  if (!data.employees) data.employees = [];
+  const newEmp: Employee = {
+    ...input,
+    id: `emp_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    salaryPayments: [],
+  };
+  data.employees.unshift(newEmp);
+  saveDataFile(data);
+  return newEmp;
+}
+
+export async function updateEmployee(id: string, updates: Partial<Employee>): Promise<Employee | null> {
+  if (await isPrismaAvailable()) {
+    try {
+      const dataToUpdate: any = {};
+      if (updates.name !== undefined) dataToUpdate.name = updates.name.trim();
+      if (updates.email !== undefined) dataToUpdate.email = updates.email ? updates.email.trim().toLowerCase() : null;
+      if (updates.phone !== undefined) dataToUpdate.phone = updates.phone ? updates.phone.trim() : null;
+      if (updates.department !== undefined) dataToUpdate.department = updates.department;
+      if (updates.designation !== undefined) dataToUpdate.designation = updates.designation;
+      if (updates.baseSalary !== undefined) dataToUpdate.baseSalary = Number(updates.baseSalary);
+      if (updates.status !== undefined) dataToUpdate.status = updates.status;
+      if (updates.joinDate !== undefined) dataToUpdate.joinDate = updates.joinDate;
+      if (updates.avatar !== undefined) dataToUpdate.avatar = updates.avatar || null;
+
+      const updated = await (prisma as any).employee.update({
+        where: { id },
+        data: dataToUpdate,
+        include: { salaryPayments: true },
+      });
+      return {
+        id: updated.id,
+        name: updated.name,
+        email: updated.email || undefined,
+        phone: updated.phone || undefined,
+        department: updated.department,
+        designation: updated.designation,
+        baseSalary: updated.baseSalary,
+        status: updated.status as any,
+        joinDate: updated.joinDate,
+        avatar: updated.avatar || undefined,
+        createdAt: updated.createdAt.toISOString(),
+        updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : undefined,
+        salaryPayments: (updated.salaryPayments || []).map((sp: any) => ({
+          id: sp.id,
+          employeeId: sp.employeeId,
+          month: sp.month,
+          baseSalary: sp.baseSalary,
+          bonus: sp.bonus,
+          deductions: sp.deductions,
+          netSalary: sp.netSalary,
+          paymentDate: sp.paymentDate,
+          paymentMethod: sp.paymentMethod,
+          status: sp.status as any,
+          notes: sp.notes || undefined,
+          createdAt: sp.createdAt.toISOString(),
+          updatedAt: sp.updatedAt ? sp.updatedAt.toISOString() : undefined,
+        })),
+      };
+    } catch (err) {
+      console.warn('Prisma updateEmployee fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  if (!data.employees) data.employees = [];
+  const index = data.employees.findIndex((e) => e.id === id);
+  if (index === -1) return null;
+
+  data.employees[index] = {
+    ...data.employees[index],
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  saveDataFile(data);
+  return data.employees[index];
+}
+
+export async function deleteEmployee(id: string): Promise<boolean> {
+  if (await isPrismaAvailable()) {
+    try {
+      await (prisma as any).employee.delete({ where: { id } });
+      return true;
+    } catch (err) {
+      console.warn('Prisma deleteEmployee fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  if (!data.employees) return false;
+  const initLen = data.employees.length;
+  data.employees = data.employees.filter((e) => e.id !== id);
+  if (data.salaryPayments) {
+    data.salaryPayments = data.salaryPayments.filter((sp) => sp.employeeId !== id);
+  }
+  if (data.employees.length !== initLen) {
+    saveDataFile(data);
+    return true;
+  }
+  return false;
+}
+
+// -------------------------------------------------------------
+// Salary Disbursement Operations (Payroll)
+// -------------------------------------------------------------
+export async function getSalaryPayments(filters?: {
+  employeeId?: string;
+  month?: string;
+}): Promise<SalaryPayment[]> {
+  if (await isPrismaAvailable()) {
+    try {
+      const where: any = {};
+      if (filters?.employeeId) where.employeeId = filters.employeeId;
+      if (filters?.month) where.month = filters.month;
+
+      const records = await (prisma as any).salaryPayment.findMany({
+        where,
+        include: { employee: true },
+        orderBy: { paymentDate: 'desc' },
+      });
+
+      return records.map((sp: any) => ({
+        id: sp.id,
+        employeeId: sp.employeeId,
+        employeeName: sp.employee?.name || undefined,
+        department: sp.employee?.department || undefined,
+        designation: sp.employee?.designation || undefined,
+        month: sp.month,
+        baseSalary: sp.baseSalary,
+        bonus: sp.bonus,
+        deductions: sp.deductions,
+        netSalary: sp.netSalary,
+        paymentDate: sp.paymentDate,
+        paymentMethod: sp.paymentMethod,
+        status: sp.status as any,
+        notes: sp.notes || undefined,
+        createdAt: sp.createdAt.toISOString(),
+        updatedAt: sp.updatedAt ? sp.updatedAt.toISOString() : undefined,
+      }));
+    } catch (err) {
+      console.warn('Prisma getSalaryPayments fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  let payments = data.salaryPayments || [];
+  const empMap = new Map((data.employees || []).map((e) => [e.id, e]));
+
+  if (filters?.employeeId) {
+    payments = payments.filter((p) => p.employeeId === filters.employeeId);
+  }
+  if (filters?.month) {
+    payments = payments.filter((p) => p.month === filters.month);
+  }
+
+  return payments
+    .map((p) => {
+      const emp = empMap.get(p.employeeId);
+      return {
+        ...p,
+        employeeName: emp?.name || p.employeeName,
+        department: emp?.department || p.department,
+        designation: emp?.designation || p.designation,
+      };
+    })
+    .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime());
+}
+
+export async function createSalaryPayment(
+  input: Omit<SalaryPayment, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<SalaryPayment> {
+  const baseSalary = Number(input.baseSalary) || 0;
+  const bonus = Number(input.bonus) || 0;
+  const deductions = Number(input.deductions) || 0;
+  const netSalary = Number(input.netSalary) || baseSalary + bonus - deductions;
+
+  if (await isPrismaAvailable()) {
+    try {
+      const created = await (prisma as any).salaryPayment.create({
+        data: {
+          employeeId: input.employeeId,
+          month: input.month,
+          baseSalary,
+          bonus,
+          deductions,
+          netSalary,
+          paymentDate: input.paymentDate || new Date().toISOString().split('T')[0],
+          paymentMethod: input.paymentMethod || 'Bank Transfer',
+          status: input.status || 'Paid',
+          notes: input.notes || null,
+        },
+        include: { employee: true },
+      });
+
+      return {
+        id: created.id,
+        employeeId: created.employeeId,
+        employeeName: created.employee?.name,
+        department: created.employee?.department,
+        designation: created.employee?.designation,
+        month: created.month,
+        baseSalary: created.baseSalary,
+        bonus: created.bonus,
+        deductions: created.deductions,
+        netSalary: created.netSalary,
+        paymentDate: created.paymentDate,
+        paymentMethod: created.paymentMethod,
+        status: created.status as any,
+        notes: created.notes || undefined,
+        createdAt: created.createdAt.toISOString(),
+        updatedAt: created.updatedAt ? created.updatedAt.toISOString() : undefined,
+      };
+    } catch (err) {
+      console.warn('Prisma createSalaryPayment fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  if (!data.salaryPayments) data.salaryPayments = [];
+  const emp = (data.employees || []).find((e) => e.id === input.employeeId);
+
+  const newPayment: SalaryPayment = {
+    ...input,
+    id: `sal_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    baseSalary,
+    bonus,
+    deductions,
+    netSalary,
+    employeeName: emp?.name,
+    department: emp?.department,
+    designation: emp?.designation,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  data.salaryPayments.unshift(newPayment);
+  saveDataFile(data);
+  return newPayment;
+}
+
+export async function deleteSalaryPayment(id: string): Promise<boolean> {
+  if (await isPrismaAvailable()) {
+    try {
+      await (prisma as any).salaryPayment.delete({ where: { id } });
+      return true;
+    } catch (err) {
+      console.warn('Prisma deleteSalaryPayment fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  if (!data.salaryPayments) return false;
+  const initLen = data.salaryPayments.length;
+  data.salaryPayments = data.salaryPayments.filter((p) => p.id !== id);
+  if (data.salaryPayments.length !== initLen) {
+    saveDataFile(data);
+    return true;
+  }
+  return false;
+}
+
+export async function getPayrollStats(): Promise<PayrollStats> {
+  const employees = await getEmployees();
+  const payments = await getSalaryPayments();
+
+  const totalEmployees = employees.length;
+  const activeEmployees = employees.filter((e) => e.status === 'Active').length;
+  const totalMonthlyPayroll = employees
+    .filter((e) => e.status === 'Active')
+    .reduce((sum, e) => sum + (e.baseSalary || 0), 0);
+
+  const now = new Date();
+  const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  const currentMonthPayments = payments.filter(
+    (p) => p.month === currentMonthStr || p.paymentDate.startsWith(currentMonthStr)
+  );
+
+  const totalPaidThisMonth = currentMonthPayments
+    .filter((p) => p.status === 'Paid')
+    .reduce((sum, p) => sum + p.netSalary, 0);
+
+  const pendingDisbursements = currentMonthPayments.filter((p) => p.status === 'Pending').length;
+  const recentPayments = payments.slice(0, 5);
+
+  return {
+    totalEmployees,
+    activeEmployees,
+    totalMonthlyPayroll: Number(totalMonthlyPayroll.toFixed(2)),
+    totalPaidThisMonth: Number(totalPaidThisMonth.toFixed(2)),
+    pendingDisbursements,
+    recentPayments,
+  };
 }

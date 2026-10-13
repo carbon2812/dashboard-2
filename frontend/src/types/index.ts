@@ -82,6 +82,7 @@ export interface DashboardStats {
   monthlyTrends: MonthlyTrendItem[];
   weeklyTrends: WeeklyTrendItem[];
   recentExpenses: Expense[];
+  payrollStats?: PayrollStats;
 }
 
 export interface DriveStatus {
@@ -148,4 +149,52 @@ export interface AuthResponse {
   user?: User;
   token?: string;
   error?: string;
+}
+
+export type EmployeeStatus = 'Active' | 'On Leave' | 'Terminated';
+
+export interface Employee {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  department: string;
+  designation: string;
+  baseSalary: number;
+  status: EmployeeStatus;
+  joinDate: string; // YYYY-MM-DD
+  avatar?: string;
+  createdAt: string;
+  updatedAt?: string;
+  salaryPayments?: SalaryPayment[];
+}
+
+export type SalaryStatus = 'Paid' | 'Pending';
+
+export interface SalaryPayment {
+  id: string;
+  employeeId: string;
+  employeeName?: string;
+  department?: string;
+  designation?: string;
+  month: string; // YYYY-MM
+  baseSalary: number;
+  bonus: number;
+  deductions: number;
+  netSalary: number;
+  paymentDate: string; // YYYY-MM-DD
+  paymentMethod: string; // Bank Transfer, UPI, Cheque, Cash
+  status: SalaryStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface PayrollStats {
+  totalEmployees: number;
+  activeEmployees: number;
+  totalMonthlyPayroll: number;
+  totalPaidThisMonth: number;
+  pendingDisbursements: number;
+  recentPayments: SalaryPayment[];
 }

@@ -25,6 +25,15 @@ import {
   findUserById,
   createUser,
   isPrismaAvailable,
+  getEmployees,
+  getEmployeeById,
+  createEmployee,
+  updateEmployee,
+  deleteEmployee,
+  getSalaryPayments,
+  createSalaryPayment,
+  deleteSalaryPayment,
+  getPayrollStats,
 } from './db';
 import { swaggerSpec } from './swagger';
 import { upload, UPLOAD_DIR } from './upload';
@@ -420,6 +429,128 @@ app.delete('/api/expenses/:id', async (req: Request, res: Response) => {
 app.get('/api/stats', async (req: Request, res: Response) => {
   try {
     const stats = await getDashboardStats();
+    res.json({ success: true, data: stats });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// -------------------------------------------------------------
+// 7. Employee Management & Salary Payroll Endpoints
+// -------------------------------------------------------------
+app.get('/api/employees', async (req: Request, res: Response) => {
+  try {
+    const list = await getEmployees();
+    res.json({ success: true, data: list });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/employees/:id', async (req: Request, res: Response) => {
+  try {
+    const emp = await getEmployeeById(req.params.id);
+    if (!emp) return res.status(404).json({ success: false, error: 'Employee not found' });
+    res.json({ success: true, data: emp });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/employees', async (req: Request, res: Response) => {
+  try {
+    const { name, email, phone, department, designation, baseSalary, status, joinDate, avatar } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Employee name is required' });
+    }
+    const created = await createEmployee({
+      name,
+      email,
+      phone,
+      department: department || 'Engineering',
+      designation: designation || 'Staff',
+      baseSalary: Number(baseSalary) || 0,
+      status: status || 'Active',
+      joinDate: joinDate || new Date().toISOString().split('T')[0],
+      avatar,
+    });
+    res.status(201).json({ success: true, data: created });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/employees/:id', async (req: Request, res: Response) => {
+  try {
+    const updated = await updateEmployee(req.params.id, req.body);
+    if (!updated) return res.status(404).json({ success: false, error: 'Employee not found' });
+    res.json({ success: true, data: updated });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/employees/:id', async (req: Request, res: Response) => {
+  try {
+    const deleted = await deleteEmployee(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, error: 'Employee not found' });
+    res.json({ success: true, message: 'Employee deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Salary Payments (Payroll)
+app.get('/api/salaries', async (req: Request, res: Response) => {
+  try {
+    const { employeeId, month } = req.query;
+    const list = await getSalaryPayments({
+      employeeId: employeeId as string,
+      month: month as string,
+    });
+    res.json({ success: true, data: list });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/salaries', async (req: Request, res: Response) => {
+  try {
+    const { employeeId, month, baseSalary, bonus, deductions, netSalary, paymentDate, paymentMethod, status, notes } = req.body;
+    if (!employeeId) return res.status(400).json({ success: false, error: 'Employee is required' });
+    if (!month) return res.status(400).json({ success: false, error: 'Salary month is required' });
+
+    const created = await createSalaryPayment({
+      employeeId,
+      month,
+      baseSalary: Number(baseSalary) || 0,
+      bonus: Number(bonus) || 0,
+      deductions: Number(deductions) || 0,
+      netSalary: Number(netSalary) || 0,
+      paymentDate: paymentDate || new Date().toISOString().split('T')[0],
+      paymentMethod: paymentMethod || 'Bank Transfer',
+      status: status || 'Paid',
+      notes,
+    });
+    res.status(201).json({ success: true, data: created });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/salaries/:id', async (req: Request, res: Response) => {
+  try {
+    const deleted = await deleteSalaryPayment(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, error: 'Salary record not found' });
+    res.json({ success: true, message: 'Salary disbursement record deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/payroll/stats', async (req: Request, res: Response) => {
+  try {
+    const stats = await getPayrollStats();
     res.json({ success: true, data: stats });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });

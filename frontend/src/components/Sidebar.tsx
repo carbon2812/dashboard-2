@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   X,
   LogOut,
+  Users,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -49,6 +50,12 @@ export function Sidebar({
       href: '/expenses',
       icon: Receipt,
       badge: 'Live',
+    },
+    {
+      label: 'Employees & Salary',
+      href: '/employees',
+      icon: Users,
+      badge: 'Payroll',
     },
     {
       label: 'Categories',

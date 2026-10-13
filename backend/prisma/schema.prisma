@@ -69,3 +69,42 @@ model User {
 
   @@map("users")
 }
+
+model Employee {
+  id             String          @id @default(cuid())
+  name           String
+  email          String?
+  phone          String?
+  department     String          @default("Engineering")
+  designation    String          @default("Software Engineer")
+  baseSalary     Float           @default(0)
+  status         String          @default("Active") // Active, On Leave, Terminated
+  joinDate       String          // Formatted "YYYY-MM-DD"
+  avatar         String?
+  salaryPayments SalaryPayment[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@map("employees")
+}
+
+model SalaryPayment {
+  id            String    @id @default(cuid())
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  month         String    // e.g. "2026-10" or "October 2026"
+  baseSalary    Float
+  bonus         Float     @default(0)
+  deductions    Float     @default(0)
+  netSalary     Float
+  paymentDate   String    // Formatted "YYYY-MM-DD"
+  paymentMethod String    @default("Bank Transfer") // Bank Transfer, UPI, Cheque, Cash
+  status        String    @default("Paid") // Paid, Pending
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([paymentDate])
+  @@map("salary_payments")
+}
