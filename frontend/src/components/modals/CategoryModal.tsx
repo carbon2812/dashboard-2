@@ -14,6 +14,7 @@ import {
 import { ExpenseCategory } from '@/types';
 import { CATEGORY_ICONS, CATEGORY_COLORS, getCategoryIcon } from '@/lib/icons';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface CategoryModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export function CategoryModal({
   categoryToEdit,
   onCategorySaved,
 }: CategoryModalProps) {
+  const { user } = useAuth();
   const { success, error: toastError } = useToast();
 
   const [name, setName] = useState('');
@@ -67,6 +69,7 @@ export function CategoryModal({
     setSubmitting(true);
     try {
       const payload = {
+        userId: user?.id,
         name: name.trim(),
         color,
         icon,

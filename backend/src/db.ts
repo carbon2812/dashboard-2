@@ -179,14 +179,17 @@ export async function isPrismaAvailable(): Promise<boolean> {
 }
 
 // --- Category Operations ---
-export async function getCategories(): Promise<ExpenseCategory[]> {
+export async function getCategories(userId?: string): Promise<ExpenseCategory[]> {
   if (await isPrismaAvailable()) {
     try {
+      const where: any = userId ? { OR: [{ isDefault: true }, { userId }] } : {};
       const records = await prisma.category.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
       });
       return records.map((c) => ({
         id: c.id,
+        userId: (c as any).userId || undefined,
         name: c.name,
         color: c.color,
         icon: c.icon,
@@ -200,7 +203,8 @@ export async function getCategories(): Promise<ExpenseCategory[]> {
     }
   }
   const data = ensureDataFile();
-  return data.categories;
+  if (!userId) return data.categories;
+  return data.categories.filter((c) => c.isDefault || c.userId === userId || (!c.userId && !c.isDefault));
 }
 
 export async function getCategoryById(id: string): Promise<ExpenseCategory | undefined> {
@@ -210,6 +214,7 @@ export async function getCategoryById(id: string): Promise<ExpenseCategory | und
       if (!c) return undefined;
       return {
         id: c.id,
+        userId: (c as any).userId || undefined,
         name: c.name,
         color: c.color,
         icon: c.icon,
@@ -226,11 +231,12 @@ export async function getCategoryById(id: string): Promise<ExpenseCategory | und
   return data.categories.find(c => c.id === id);
 }
 
-export async function createCategory(input: Omit<ExpenseCategory, 'id' | 'createdAt'>): Promise<ExpenseCategory> {
+export async function createCategory(input: Omit<ExpenseCategory, 'id' | 'createdAt'> & { userId?: string }): Promise<ExpenseCategory> {
   if (await isPrismaAvailable()) {
     try {
       const created = await prisma.category.create({
         data: {
+          userId: input.userId,
           name: input.name,
           color: input.color || '#6366f1',
           icon: input.icon || 'Layers',
@@ -241,6 +247,7 @@ export async function createCategory(input: Omit<ExpenseCategory, 'id' | 'create
       });
       return {
         id: created.id,
+        userId: (created as any).userId || undefined,
         name: created.name,
         color: created.color,
         icon: created.icon,
@@ -322,10 +329,16 @@ export async function deleteCategory(id: string): Promise<boolean> {
 // --- Expense Operations ---
 export async function getExpenses(filters?: ExpenseFilterParams): Promise<Expense[]> {
   let list: Expense[] = [];
+  let fromPrisma = false;
 
   if (await isPrismaAvailable()) {
     try {
+      const where: any = {};
+      if (filters?.userId) {
+        where.userId = filters.userId;
+      }
       const records = await prisma.expense.findMany({
+        where,
         include: {
           category: true,
           attachment: true,
@@ -337,12 +350,14 @@ export async function getExpenses(filters?: ExpenseFilterParams): Promise<Expens
 
       list = records.map((e) => ({
         id: e.id,
+        userId: (e as any).userId || undefined,
         amount: e.amount,
         currency: e.currency,
         categoryId: e.categoryId,
         category: e.category
           ? {
               id: e.category.id,
+              userId: (e.category as any).userId || undefined,
               name: e.category.name,
               color: e.category.color,
               icon: e.category.icon,
@@ -372,12 +387,13 @@ export async function getExpenses(filters?: ExpenseFilterParams): Promise<Expens
         createdAt: e.createdAt.toISOString(),
         updatedAt: e.updatedAt.toISOString(),
       }));
+      fromPrisma = true;
     } catch (err) {
       console.warn('Prisma getExpenses fallback:', err);
     }
   }
 
-  if (list.length === 0) {
+  if (!fromPrisma) {
     const data = ensureDataFile();
     list = [...data.expenses];
     const catMap = new Map(data.categories.map(c => [c.id, c]));
@@ -393,6 +409,10 @@ export async function getExpenses(filters?: ExpenseFilterParams): Promise<Expens
         createdAt: new Date().toISOString(),
       },
     }));
+  }
+
+  if (filters?.userId) {
+    list = list.filter(exp => exp.userId === filters.userId);
   }
 
   if (!filters) {
@@ -455,16 +475,17 @@ export async function getExpenses(filters?: ExpenseFilterParams): Promise<Expens
   return list;
 }
 
-export async function getExpenseById(id: string): Promise<Expense | undefined> {
-  const expenses = await getExpenses();
+export async function getExpenseById(id: string, userId?: string): Promise<Expense | undefined> {
+  const expenses = await getExpenses(userId ? { userId } : undefined);
   return expenses.find(e => e.id === id);
 }
 
-export async function createExpense(input: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'>): Promise<Expense> {
+export async function createExpense(input: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'> & { userId?: string }): Promise<Expense> {
   if (await isPrismaAvailable()) {
     try {
       const created = await prisma.expense.create({
         data: {
+          userId: input.userId,
           amount: input.amount,
           currency: input.currency || 'INR',
           categoryId: input.categoryId,
@@ -495,12 +516,14 @@ export async function createExpense(input: Omit<Expense, 'id' | 'createdAt' | 'u
 
       return {
         id: created.id,
+        userId: (created as any).userId || undefined,
         amount: created.amount,
         currency: created.currency,
         categoryId: created.categoryId,
         category: (created as any).category
           ? {
               id: (created as any).category.id,
+              userId: (created as any).category.userId || undefined,
               name: (created as any).category.name,
               color: (created as any).category.color,
               icon: (created as any).category.icon,
@@ -555,11 +578,14 @@ export async function createExpense(input: Omit<Expense, 'id' | 'createdAt' | 'u
   return { ...newExp, category: cat };
 }
 
-export async function updateExpense(id: string, updates: Partial<Expense>): Promise<Expense | null> {
+export async function updateExpense(id: string, updates: Partial<Expense>, userId?: string): Promise<Expense | null> {
   if (await isPrismaAvailable()) {
     try {
+      const where: any = { id };
+      if (userId) where.userId = userId;
+
       const updated = await prisma.expense.update({
-        where: { id },
+        where,
         data: {
           amount: updates.amount,
           categoryId: updates.categoryId,
@@ -577,12 +603,14 @@ export async function updateExpense(id: string, updates: Partial<Expense>): Prom
 
       return {
         id: updated.id,
+        userId: (updated as any).userId || undefined,
         amount: updated.amount,
         currency: updated.currency,
         categoryId: updated.categoryId,
         category: updated.category
           ? {
               id: updated.category.id,
+              userId: (updated.category as any).userId || undefined,
               name: updated.category.name,
               color: updated.category.color,
               icon: updated.category.icon,
@@ -618,7 +646,7 @@ export async function updateExpense(id: string, updates: Partial<Expense>): Prom
   }
 
   const data = ensureDataFile();
-  const index = data.expenses.findIndex(e => e.id === id);
+  const index = data.expenses.findIndex(e => e.id === id && (!userId || e.userId === userId));
   if (index === -1) return null;
 
   data.expenses[index] = {
@@ -632,10 +660,12 @@ export async function updateExpense(id: string, updates: Partial<Expense>): Prom
   return { ...data.expenses[index], category: cat };
 }
 
-export async function deleteExpense(id: string): Promise<boolean> {
+export async function deleteExpense(id: string, userId?: string): Promise<boolean> {
   if (await isPrismaAvailable()) {
     try {
-      await prisma.expense.delete({ where: { id } });
+      const where: any = { id };
+      if (userId) where.userId = userId;
+      await prisma.expense.delete({ where });
       return true;
     } catch (err) {
       console.warn('Prisma deleteExpense fallback:', err);
@@ -644,7 +674,7 @@ export async function deleteExpense(id: string): Promise<boolean> {
 
   const data = ensureDataFile();
   const initialLength = data.expenses.length;
-  data.expenses = data.expenses.filter(e => e.id !== id);
+  data.expenses = data.expenses.filter(e => !(e.id === id && (!userId || e.userId === userId)));
   if (data.expenses.length !== initialLength) {
     saveDataFile(data);
     return true;
@@ -653,9 +683,9 @@ export async function deleteExpense(id: string): Promise<boolean> {
 }
 
 // --- Dashboard Aggregations & Analytics ---
-export async function getDashboardStats(): Promise<DashboardStats> {
-  const expenses = await getExpenses();
-  const categories = await getCategories();
+export async function getDashboardStats(userId?: string): Promise<DashboardStats> {
+  const expenses = await getExpenses(userId ? { userId } : undefined);
+  const categories = await getCategories(userId);
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const totalReceipts = expenses.filter(e => Boolean(e.attachment)).length;
@@ -755,9 +785,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 
   // Recent 6 expenses with category details
-  const allWithCat = await getExpenses();
-  const recentExpenses = allWithCat.slice(0, 6);
-  const payrollStats = await getPayrollStats();
+  const recentExpenses = expenses.slice(0, 6);
+  const payrollStats = await getPayrollStats(userId);
 
   return {
     totalExpenses: Number(totalExpenses.toFixed(2)),
@@ -903,10 +932,12 @@ export async function createUser(input: {
 // -------------------------------------------------------------
 // Employee Management Operations (PostgreSQL Prisma + Local JSON)
 // -------------------------------------------------------------
-export async function getEmployees(): Promise<Employee[]> {
+export async function getEmployees(userId?: string): Promise<Employee[]> {
   if (await isPrismaAvailable()) {
     try {
+      const where: any = userId ? { userId } : {};
       const records = await (prisma as any).employee.findMany({
+        where,
         include: {
           salaryPayments: {
             orderBy: { paymentDate: 'desc' },
@@ -916,6 +947,7 @@ export async function getEmployees(): Promise<Employee[]> {
       });
       return records.map((emp: any) => ({
         id: emp.id,
+        userId: emp.userId || undefined,
         name: emp.name,
         email: emp.email || undefined,
         phone: emp.phone || undefined,
@@ -929,6 +961,7 @@ export async function getEmployees(): Promise<Employee[]> {
         updatedAt: emp.updatedAt ? emp.updatedAt.toISOString() : undefined,
         salaryPayments: (emp.salaryPayments || []).map((sp: any) => ({
           id: sp.id,
+          userId: sp.userId || undefined,
           employeeId: sp.employeeId,
           month: sp.month,
           baseSalary: sp.baseSalary,
@@ -949,8 +982,12 @@ export async function getEmployees(): Promise<Employee[]> {
   }
 
   const data = ensureDataFile();
-  const employees = data.employees || [];
-  const payments = data.salaryPayments || [];
+  let employees = data.employees || [];
+  let payments = data.salaryPayments || [];
+  if (userId) {
+    employees = employees.filter((emp) => emp.userId === userId);
+    payments = payments.filter((sp) => sp.userId === userId);
+  }
   return employees.map((emp) => ({
     ...emp,
     salaryPayments: payments
@@ -959,18 +996,19 @@ export async function getEmployees(): Promise<Employee[]> {
   }));
 }
 
-export async function getEmployeeById(id: string): Promise<Employee | null> {
-  const all = await getEmployees();
+export async function getEmployeeById(id: string, userId?: string): Promise<Employee | null> {
+  const all = await getEmployees(userId);
   return all.find((e) => e.id === id) || null;
 }
 
 export async function createEmployee(
-  input: Omit<Employee, 'id' | 'createdAt' | 'updatedAt' | 'salaryPayments'>
+  input: Omit<Employee, 'id' | 'createdAt' | 'updatedAt' | 'salaryPayments'> & { userId?: string }
 ): Promise<Employee> {
   if (await isPrismaAvailable()) {
     try {
       const created = await (prisma as any).employee.create({
         data: {
+          userId: input.userId,
           name: input.name.trim(),
           email: input.email ? input.email.trim().toLowerCase() : null,
           phone: input.phone ? input.phone.trim() : null,
@@ -984,6 +1022,7 @@ export async function createEmployee(
       });
       return {
         id: created.id,
+        userId: created.userId || undefined,
         name: created.name,
         email: created.email || undefined,
         phone: created.phone || undefined,
@@ -1007,6 +1046,7 @@ export async function createEmployee(
   const newEmp: Employee = {
     ...input,
     id: `emp_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    userId: input.userId,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     salaryPayments: [],
@@ -1016,9 +1056,12 @@ export async function createEmployee(
   return newEmp;
 }
 
-export async function updateEmployee(id: string, updates: Partial<Employee>): Promise<Employee | null> {
+export async function updateEmployee(id: string, updates: Partial<Employee>, userId?: string): Promise<Employee | null> {
   if (await isPrismaAvailable()) {
     try {
+      const where: any = { id };
+      if (userId) where.userId = userId;
+
       const dataToUpdate: any = {};
       if (updates.name !== undefined) dataToUpdate.name = updates.name.trim();
       if (updates.email !== undefined) dataToUpdate.email = updates.email ? updates.email.trim().toLowerCase() : null;
@@ -1031,12 +1074,13 @@ export async function updateEmployee(id: string, updates: Partial<Employee>): Pr
       if (updates.avatar !== undefined) dataToUpdate.avatar = updates.avatar || null;
 
       const updated = await (prisma as any).employee.update({
-        where: { id },
+        where,
         data: dataToUpdate,
         include: { salaryPayments: true },
       });
       return {
         id: updated.id,
+        userId: updated.userId || undefined,
         name: updated.name,
         email: updated.email || undefined,
         phone: updated.phone || undefined,
@@ -1050,6 +1094,7 @@ export async function updateEmployee(id: string, updates: Partial<Employee>): Pr
         updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : undefined,
         salaryPayments: (updated.salaryPayments || []).map((sp: any) => ({
           id: sp.id,
+          userId: sp.userId || undefined,
           employeeId: sp.employeeId,
           month: sp.month,
           baseSalary: sp.baseSalary,
@@ -1071,7 +1116,7 @@ export async function updateEmployee(id: string, updates: Partial<Employee>): Pr
 
   const data = ensureDataFile();
   if (!data.employees) data.employees = [];
-  const index = data.employees.findIndex((e) => e.id === id);
+  const index = data.employees.findIndex((e) => e.id === id && (!userId || e.userId === userId));
   if (index === -1) return null;
 
   data.employees[index] = {
@@ -1083,10 +1128,12 @@ export async function updateEmployee(id: string, updates: Partial<Employee>): Pr
   return data.employees[index];
 }
 
-export async function deleteEmployee(id: string): Promise<boolean> {
+export async function deleteEmployee(id: string, userId?: string): Promise<boolean> {
   if (await isPrismaAvailable()) {
     try {
-      await (prisma as any).employee.delete({ where: { id } });
+      const where: any = { id };
+      if (userId) where.userId = userId;
+      await (prisma as any).employee.delete({ where });
       return true;
     } catch (err) {
       console.warn('Prisma deleteEmployee fallback:', err);
@@ -1096,7 +1143,7 @@ export async function deleteEmployee(id: string): Promise<boolean> {
   const data = ensureDataFile();
   if (!data.employees) return false;
   const initLen = data.employees.length;
-  data.employees = data.employees.filter((e) => e.id !== id);
+  data.employees = data.employees.filter((e) => !(e.id === id && (!userId || e.userId === userId)));
   if (data.salaryPayments) {
     data.salaryPayments = data.salaryPayments.filter((sp) => sp.employeeId !== id);
   }
@@ -1113,12 +1160,14 @@ export async function deleteEmployee(id: string): Promise<boolean> {
 export async function getSalaryPayments(filters?: {
   employeeId?: string;
   month?: string;
+  userId?: string;
 }): Promise<SalaryPayment[]> {
   if (await isPrismaAvailable()) {
     try {
       const where: any = {};
       if (filters?.employeeId) where.employeeId = filters.employeeId;
       if (filters?.month) where.month = filters.month;
+      if (filters?.userId) where.userId = filters.userId;
 
       const records = await (prisma as any).salaryPayment.findMany({
         where,
@@ -1128,6 +1177,7 @@ export async function getSalaryPayments(filters?: {
 
       return records.map((sp: any) => ({
         id: sp.id,
+        userId: sp.userId || undefined,
         employeeId: sp.employeeId,
         employeeName: sp.employee?.name || undefined,
         department: sp.employee?.department || undefined,
@@ -1153,6 +1203,9 @@ export async function getSalaryPayments(filters?: {
   let payments = data.salaryPayments || [];
   const empMap = new Map((data.employees || []).map((e) => [e.id, e]));
 
+  if (filters?.userId) {
+    payments = payments.filter((p) => p.userId === filters.userId);
+  }
   if (filters?.employeeId) {
     payments = payments.filter((p) => p.employeeId === filters.employeeId);
   }
@@ -1174,7 +1227,7 @@ export async function getSalaryPayments(filters?: {
 }
 
 export async function createSalaryPayment(
-  input: Omit<SalaryPayment, 'id' | 'createdAt' | 'updatedAt'>
+  input: Omit<SalaryPayment, 'id' | 'createdAt' | 'updatedAt'> & { userId?: string }
 ): Promise<SalaryPayment> {
   const baseSalary = Number(input.baseSalary) || 0;
   const bonus = Number(input.bonus) || 0;
@@ -1185,6 +1238,7 @@ export async function createSalaryPayment(
     try {
       const created = await (prisma as any).salaryPayment.create({
         data: {
+          userId: input.userId,
           employeeId: input.employeeId,
           month: input.month,
           baseSalary,
@@ -1201,6 +1255,7 @@ export async function createSalaryPayment(
 
       return {
         id: created.id,
+        userId: created.userId || undefined,
         employeeId: created.employeeId,
         employeeName: created.employee?.name,
         department: created.employee?.department,
@@ -1229,6 +1284,7 @@ export async function createSalaryPayment(
   const newPayment: SalaryPayment = {
     ...input,
     id: `sal_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    userId: input.userId,
     baseSalary,
     bonus,
     deductions,
@@ -1245,10 +1301,12 @@ export async function createSalaryPayment(
   return newPayment;
 }
 
-export async function deleteSalaryPayment(id: string): Promise<boolean> {
+export async function deleteSalaryPayment(id: string, userId?: string): Promise<boolean> {
   if (await isPrismaAvailable()) {
     try {
-      await (prisma as any).salaryPayment.delete({ where: { id } });
+      const where: any = { id };
+      if (userId) where.userId = userId;
+      await (prisma as any).salaryPayment.delete({ where });
       return true;
     } catch (err) {
       console.warn('Prisma deleteSalaryPayment fallback:', err);
@@ -1258,7 +1316,7 @@ export async function deleteSalaryPayment(id: string): Promise<boolean> {
   const data = ensureDataFile();
   if (!data.salaryPayments) return false;
   const initLen = data.salaryPayments.length;
-  data.salaryPayments = data.salaryPayments.filter((p) => p.id !== id);
+  data.salaryPayments = data.salaryPayments.filter((p) => !(p.id === id && (!userId || p.userId === userId)));
   if (data.salaryPayments.length !== initLen) {
     saveDataFile(data);
     return true;
@@ -1266,9 +1324,9 @@ export async function deleteSalaryPayment(id: string): Promise<boolean> {
   return false;
 }
 
-export async function getPayrollStats(): Promise<PayrollStats> {
-  const employees = await getEmployees();
-  const payments = await getSalaryPayments();
+export async function getPayrollStats(userId?: string): Promise<PayrollStats> {
+  const employees = await getEmployees(userId);
+  const payments = await getSalaryPayments(userId ? { userId } : undefined);
 
   const totalEmployees = employees.length;
   const activeEmployees = employees.filter((e) => e.status === 'Active').length;

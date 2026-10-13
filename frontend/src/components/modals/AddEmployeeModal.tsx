@@ -15,6 +15,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ export function AddEmployeeModal({
   onEmployeeAdded,
   onSuccess,
 }: AddEmployeeModalProps) {
+  const { user } = useAuth();
   const { success, error: toastError } = useToast();
 
   const [name, setName] = useState('');
@@ -77,6 +79,7 @@ export function AddEmployeeModal({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: user?.id,
           name: name.trim(),
           email: email.trim() || undefined,
           phone: phone.trim() || undefined,

@@ -18,6 +18,7 @@ import {
 import { Employee } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface DisburseSalaryModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export function DisburseSalaryModal({
   onSalaryDisbursed,
   onSuccess,
 }: DisburseSalaryModalProps) {
+  const { user } = useAuth();
   const { success, error: toastError } = useToast();
 
   const [selectedEmpId, setSelectedEmpId] = useState('');
@@ -102,6 +104,7 @@ export function DisburseSalaryModal({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: user?.id,
           employeeId: selectedEmpId,
           month,
           baseSalary: numBase,

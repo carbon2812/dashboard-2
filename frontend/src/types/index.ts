@@ -1,5 +1,6 @@
 export interface ExpenseCategory {
   id: string;
+  userId?: string;
   name: string;
   color: string; // e.g. '#6366f1' or custom hex
   icon: string;  // lucide icon identifier e.g. 'Laptop', 'Megaphone', 'Plane', etc.
@@ -34,6 +35,7 @@ export type ExpenseStatus = 'Approved' | 'Pending Review' | 'Flagged';
 
 export interface Expense {
   id: string;
+  userId?: string;
   amount: number;
   currency: string;
   categoryId: string;
@@ -97,6 +99,7 @@ export interface DriveStatus {
 }
 
 export interface ExpenseFilterParams {
+  userId?: string;
   search?: string;
   categoryId?: string;
   startDate?: string;
@@ -155,6 +158,7 @@ export type EmployeeStatus = 'Active' | 'On Leave' | 'Terminated';
 
 export interface Employee {
   id: string;
+  userId?: string;
   name: string;
   email?: string;
   phone?: string;
@@ -173,6 +177,7 @@ export type SalaryStatus = 'Paid' | 'Pending';
 
 export interface SalaryPayment {
   id: string;
+  userId?: string;
   employeeId: string;
   employeeName?: string;
   department?: string;

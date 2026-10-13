@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Restore authenticated session from localStorage on mount
+  // Restore authenticated session from localStorage on mount & setup global fetch auth
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem(STORAGE_KEY_USER);
@@ -38,6 +38,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.warn('Failed to restore session from localStorage:', e);
     } finally {
       setIsLoading(false);
+    }
+
+    // Attach global client fetch interceptor for zero-leakage user-scoped API queries
+    if (typeof window !== 'undefined') {
+      const originalFetch = window.fetch;
+      window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+        try {
+          const urlStr =
+            typeof input === 'string'
+              ? input
+              : input instanceof URL
+              ? input.toString()
+              : (input as any)?.url || '';
+
+          if (
+            urlStr.includes('/api/') &&
+            !urlStr.includes('/api/auth/login') &&
+            !urlStr.includes('/api/auth/signup')
+          ) {
+            const storedToken = localStorage.getItem(STORAGE_KEY_TOKEN);
+            const storedUser = localStorage.getItem(STORAGE_KEY_USER);
+            let userId = '';
+            if (storedUser) {
+              try {
+                userId = JSON.parse(storedUser)?.id || '';
+              } catch {}
+            }
+
+            const existingHeaders = init?.headers ? new Headers(init.headers) : new Headers();
+            if (storedToken && !existingHeaders.has('Authorization')) {
+              existingHeaders.set('Authorization', `Bearer ${storedToken}`);
+            }
+            if (userId && !existingHeaders.has('x-user-id')) {
+              existingHeaders.set('x-user-id', userId);
+            }
+
+            return originalFetch(input, {
+              ...init,
+              headers: existingHeaders,
+            });
+          }
+        } catch (e) {
+          // fallback safely
+        }
+        return originalFetch(input, init);
+      };
+
+      return () => {
+        window.fetch = originalFetch;
+      };
     }
   }, []);
 

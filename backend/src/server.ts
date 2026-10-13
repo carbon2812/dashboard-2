@@ -293,11 +293,45 @@ app.post('/api/auth/logout', (req: Request, res: Response) => {
 });
 
 // -------------------------------------------------------------
+// Helper: Extract Authenticated User ID from Request
+// -------------------------------------------------------------
+function getRequestUserId(req: Request): string | undefined {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.startsWith('Bearer ')
+        ? authHeader.slice(7).trim()
+        : authHeader.trim();
+      if (token) {
+        const decoded = jwt.verify(token, JWT_SECRET) as { id?: string; userId?: string };
+        if (decoded?.id || decoded?.userId) {
+          return decoded.id || decoded.userId;
+        }
+      }
+    }
+  } catch {
+    // JWT verification failed or expired, check custom headers
+  }
+
+  const customHeader = req.headers['x-user-id'];
+  if (typeof customHeader === 'string' && customHeader.trim()) {
+    return customHeader.trim();
+  }
+
+  if (typeof req.query.userId === 'string' && req.query.userId.trim()) {
+    return req.query.userId.trim();
+  }
+
+  return undefined;
+}
+
+// -------------------------------------------------------------
 // 4. Categories Endpoints
 // -------------------------------------------------------------
 app.get('/api/categories', async (req: Request, res: Response) => {
   try {
-    const categories = await getCategories();
+    const userId = getRequestUserId(req);
+    const categories = await getCategories(userId);
     res.json({ success: true, data: categories });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -306,9 +340,11 @@ app.get('/api/categories', async (req: Request, res: Response) => {
 
 app.post('/api/categories', async (req: Request, res: Response) => {
   try {
+    const userId = getRequestUserId(req);
     const { name, color, icon, description, budget } = req.body;
     if (!name) return res.status(400).json({ success: false, error: 'Category name is required' });
     const created = await createCategory({
+      userId,
       name,
       color: color || '#6366f1',
       icon: icon || 'Layers',
@@ -346,7 +382,9 @@ app.delete('/api/categories/:id', async (req: Request, res: Response) => {
 // -------------------------------------------------------------
 app.get('/api/expenses', async (req: Request, res: Response) => {
   try {
+    const userId = getRequestUserId(req);
     const filters: any = {
+      userId,
       search: req.query.search as string,
       categoryId: req.query.categoryId as string,
       startDate: req.query.startDate as string,
@@ -368,7 +406,8 @@ app.get('/api/expenses', async (req: Request, res: Response) => {
 
 app.get('/api/expenses/:id', async (req: Request, res: Response) => {
   try {
-    const expense = await getExpenseById(req.params.id);
+    const userId = getRequestUserId(req);
+    const expense = await getExpenseById(req.params.id, userId);
     if (!expense) return res.status(404).json({ success: false, error: 'Expense not found' });
     res.json({ success: true, data: expense });
   } catch (err: any) {
@@ -378,6 +417,7 @@ app.get('/api/expenses/:id', async (req: Request, res: Response) => {
 
 app.post('/api/expenses', async (req: Request, res: Response) => {
   try {
+    const userId = getRequestUserId(req);
     const { amount, currency, categoryId, date, description, merchant, paymentMethod, status, attachment } = req.body;
     if (!amount || !categoryId || !date || !description) {
       return res.status(400).json({
@@ -387,6 +427,7 @@ app.post('/api/expenses', async (req: Request, res: Response) => {
     }
 
     const created = await createExpense({
+      userId,
       amount: Number(amount),
       currency: currency || 'INR',
       categoryId,
@@ -405,7 +446,8 @@ app.post('/api/expenses', async (req: Request, res: Response) => {
 
 app.put('/api/expenses/:id', async (req: Request, res: Response) => {
   try {
-    const updated = await updateExpense(req.params.id, req.body);
+    const userId = getRequestUserId(req);
+    const updated = await updateExpense(req.params.id, req.body, userId);
     if (!updated) return res.status(404).json({ success: false, error: 'Expense not found' });
     res.json({ success: true, data: updated });
   } catch (err: any) {
@@ -415,7 +457,8 @@ app.put('/api/expenses/:id', async (req: Request, res: Response) => {
 
 app.delete('/api/expenses/:id', async (req: Request, res: Response) => {
   try {
-    const deleted = await deleteExpense(req.params.id);
+    const userId = getRequestUserId(req);
+    const deleted = await deleteExpense(req.params.id, userId);
     if (!deleted) return res.status(404).json({ success: false, error: 'Expense not found' });
     res.json({ success: true, message: 'Expense deleted successfully' });
   } catch (err: any) {
@@ -428,7 +471,8 @@ app.delete('/api/expenses/:id', async (req: Request, res: Response) => {
 // -------------------------------------------------------------
 app.get('/api/stats', async (req: Request, res: Response) => {
   try {
-    const stats = await getDashboardStats();
+    const userId = getRequestUserId(req);
+    const stats = await getDashboardStats(userId);
     res.json({ success: true, data: stats });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -440,7 +484,8 @@ app.get('/api/stats', async (req: Request, res: Response) => {
 // -------------------------------------------------------------
 app.get('/api/employees', async (req: Request, res: Response) => {
   try {
-    const list = await getEmployees();
+    const userId = getRequestUserId(req);
+    const list = await getEmployees(userId);
     res.json({ success: true, data: list });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -449,7 +494,8 @@ app.get('/api/employees', async (req: Request, res: Response) => {
 
 app.get('/api/employees/:id', async (req: Request, res: Response) => {
   try {
-    const emp = await getEmployeeById(req.params.id);
+    const userId = getRequestUserId(req);
+    const emp = await getEmployeeById(req.params.id, userId);
     if (!emp) return res.status(404).json({ success: false, error: 'Employee not found' });
     res.json({ success: true, data: emp });
   } catch (err: any) {
@@ -459,11 +505,13 @@ app.get('/api/employees/:id', async (req: Request, res: Response) => {
 
 app.post('/api/employees', async (req: Request, res: Response) => {
   try {
+    const userId = getRequestUserId(req);
     const { name, email, phone, department, designation, baseSalary, status, joinDate, avatar } = req.body;
     if (!name || !name.trim()) {
       return res.status(400).json({ success: false, error: 'Employee name is required' });
     }
     const created = await createEmployee({
+      userId,
       name,
       email,
       phone,
@@ -482,7 +530,8 @@ app.post('/api/employees', async (req: Request, res: Response) => {
 
 app.put('/api/employees/:id', async (req: Request, res: Response) => {
   try {
-    const updated = await updateEmployee(req.params.id, req.body);
+    const userId = getRequestUserId(req);
+    const updated = await updateEmployee(req.params.id, req.body, userId);
     if (!updated) return res.status(404).json({ success: false, error: 'Employee not found' });
     res.json({ success: true, data: updated });
   } catch (err: any) {
@@ -492,7 +541,8 @@ app.put('/api/employees/:id', async (req: Request, res: Response) => {
 
 app.delete('/api/employees/:id', async (req: Request, res: Response) => {
   try {
-    const deleted = await deleteEmployee(req.params.id);
+    const userId = getRequestUserId(req);
+    const deleted = await deleteEmployee(req.params.id, userId);
     if (!deleted) return res.status(404).json({ success: false, error: 'Employee not found' });
     res.json({ success: true, message: 'Employee deleted successfully' });
   } catch (err: any) {
@@ -503,8 +553,10 @@ app.delete('/api/employees/:id', async (req: Request, res: Response) => {
 // Salary Payments (Payroll)
 app.get('/api/salaries', async (req: Request, res: Response) => {
   try {
+    const userId = getRequestUserId(req);
     const { employeeId, month } = req.query;
     const list = await getSalaryPayments({
+      userId,
       employeeId: employeeId as string,
       month: month as string,
     });
@@ -516,11 +568,13 @@ app.get('/api/salaries', async (req: Request, res: Response) => {
 
 app.post('/api/salaries', async (req: Request, res: Response) => {
   try {
+    const userId = getRequestUserId(req);
     const { employeeId, month, baseSalary, bonus, deductions, netSalary, paymentDate, paymentMethod, status, notes } = req.body;
     if (!employeeId) return res.status(400).json({ success: false, error: 'Employee is required' });
     if (!month) return res.status(400).json({ success: false, error: 'Salary month is required' });
 
     const created = await createSalaryPayment({
+      userId,
       employeeId,
       month,
       baseSalary: Number(baseSalary) || 0,
@@ -540,7 +594,8 @@ app.post('/api/salaries', async (req: Request, res: Response) => {
 
 app.delete('/api/salaries/:id', async (req: Request, res: Response) => {
   try {
-    const deleted = await deleteSalaryPayment(req.params.id);
+    const userId = getRequestUserId(req);
+    const deleted = await deleteSalaryPayment(req.params.id, userId);
     if (!deleted) return res.status(404).json({ success: false, error: 'Salary record not found' });
     res.json({ success: true, message: 'Salary disbursement record deleted successfully' });
   } catch (err: any) {
@@ -550,7 +605,8 @@ app.delete('/api/salaries/:id', async (req: Request, res: Response) => {
 
 app.get('/api/payroll/stats', async (req: Request, res: Response) => {
   try {
-    const stats = await getPayrollStats();
+    const userId = getRequestUserId(req);
+    const stats = await getPayrollStats(userId);
     res.json({ success: true, data: stats });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });

@@ -9,6 +9,7 @@ datasource db {
 
 model Category {
   id          String    @id @default(cuid())
+  userId      String?
   name        String
   color       String    @default("#6366f1")
   icon        String    @default("Layers")
@@ -19,11 +20,13 @@ model Category {
   updatedAt   DateTime  @updatedAt
   expenses    Expense[]
 
+  @@index([userId])
   @@map("categories")
 }
 
 model Expense {
   id            String      @id @default(cuid())
+  userId        String?
   amount        Float
   currency      String      @default("INR")
   categoryId    String
@@ -37,6 +40,7 @@ model Expense {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
+  @@index([userId])
   @@index([categoryId])
   @@index([date])
   @@map("expenses")
@@ -72,6 +76,7 @@ model User {
 
 model Employee {
   id             String          @id @default(cuid())
+  userId         String?
   name           String
   email          String?
   phone          String?
@@ -85,11 +90,13 @@ model Employee {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
+  @@index([userId])
   @@map("employees")
 }
 
 model SalaryPayment {
   id            String    @id @default(cuid())
+  userId        String?
   employeeId    String
   employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   month         String    // e.g. "2026-10" or "October 2026"
@@ -104,6 +111,7 @@ model SalaryPayment {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  @@index([userId])
   @@index([employeeId])
   @@index([paymentDate])
   @@map("salary_payments")

@@ -72,61 +72,6 @@
     }
   ],
   "expenses": [],
-  "employees": [
-    {
-      "id": "emp_rahul_sharma",
-      "name": "Rahul Sharma",
-      "email": "rahul.sharma@company.internal",
-      "phone": "+91 98765 43210",
-      "department": "Engineering",
-      "designation": "Lead Full-Stack Engineer",
-      "baseSalary": 125000,
-      "status": "Active",
-      "joinDate": "2024-03-01",
-      "createdAt": "2024-03-01T09:00:00.000Z"
-    },
-    {
-      "id": "emp_priya_patel",
-      "name": "Priya Patel",
-      "email": "priya.patel@company.internal",
-      "phone": "+91 98765 43211",
-      "department": "Finance & Accounting",
-      "designation": "Senior Financial Analyst",
-      "baseSalary": 95000,
-      "status": "Active",
-      "joinDate": "2024-06-15",
-      "createdAt": "2024-06-15T09:00:00.000Z"
-    },
-    {
-      "id": "emp_aman_verma",
-      "name": "Aman Verma",
-      "email": "aman.verma@company.internal",
-      "phone": "+91 98765 43212",
-      "department": "Product & Design",
-      "designation": "UI/UX Product Designer",
-      "baseSalary": 85000,
-      "status": "Active",
-      "joinDate": "2025-01-10",
-      "createdAt": "2025-01-10T09:00:00.000Z"
-    }
-  ],
-  "salaryPayments": [
-    {
-      "id": "sal_pay_oct_001",
-      "employeeId": "emp_rahul_sharma",
-      "employeeName": "Rahul Sharma",
-      "department": "Engineering",
-      "designation": "Lead Full-Stack Engineer",
-      "month": "2026-10",
-      "baseSalary": 125000,
-      "bonus": 15000,
-      "deductions": 5000,
-      "netSalary": 135000,
-      "paymentDate": "2026-10-01",
-      "paymentMethod": "Bank Transfer",
-      "status": "Paid",
-      "notes": "October 2026 salary with Q3 incentive bonus",
-      "createdAt": "2026-10-01T10:00:00.000Z"
-    }
-  ]
+  "employees": [],
+  "salaryPayments": []
 }

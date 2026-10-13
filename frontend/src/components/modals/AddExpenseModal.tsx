@@ -23,6 +23,7 @@ import { ExpenseCategory, ExpenseAttachment, PaymentMethod } from '@/types';
 import { CategoryPill } from '@/components/ui/CategoryPill';
 import { formatFileSize } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export function AddExpenseModal({
   categories,
   onExpenseAdded,
 }: AddExpenseModalProps) {
+  const { user } = useAuth();
   const { success, error: toastError } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -149,6 +151,7 @@ export function AddExpenseModal({
     setSubmitting(true);
     try {
       const payload = {
+        userId: user?.id,
         amount: parseFloat(amount),
         currency: 'INR',
         categoryId,
