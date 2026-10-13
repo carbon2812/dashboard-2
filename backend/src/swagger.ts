@@ -13,7 +13,7 @@ export const swaggerSpec = {
     `,
     contact: {
       name: 'Expense Tracker API Support',
-      url: 'http://localhost:3000',
+      url: 'https://www.samarth.tech',
     },
     license: {
       name: 'MIT',
@@ -22,22 +22,161 @@ export const swaggerSpec = {
   },
   servers: [
     {
-      url: 'http://localhost:3000',
-      description: 'Next.js Local Development Server',
+      url: 'https://api.samarth.tech',
+      description: 'Production Dedicated API Gateway (api.samarth.tech)',
     },
     {
-      url: 'http://localhost:5001',
-      description: 'Standalone Express API Server',
+      url: 'https://www.samarth.tech',
+      description: 'Production Web App & Gateway (www.samarth.tech)',
+    },
+    {
+      url: 'http://localhost:28491',
+      description: 'Local Docker Nginx Gateway (Port 28491)',
+    },
+    {
+      url: 'http://localhost:3000',
+      description: 'Local Next.js Frontend Development Server',
+    },
+    {
+      url: 'http://localhost:25062',
+      description: 'Direct Express Backend API (Port 25062)',
     },
   ],
   tags: [
+    { name: 'Authentication', description: 'User registration, login authentication, and JWT session verification' },
     { name: 'Expenses', description: 'Record, list, filter, inspect, update, and delete corporate expenses' },
     { name: 'Categories', description: 'Manage budget categories with custom colors and Lucide icons' },
     { name: 'Media & Storage', description: 'VPS Local Storage bill uploads and storage health checks' },
     { name: 'Analytics', description: 'Executive metrics, spending trends, and budget tracking' },
-    { name: 'System', description: 'Database management and sample dataset reset' },
+    { name: 'System', description: 'Database management, health checks, and sample dataset reset' },
   ],
   paths: {
+    '/health': {
+      get: {
+        tags: ['System'],
+        summary: 'System Health and Database Readiness',
+        description: 'Returns real-time health check, uptime, environment, and PostgreSQL database connection state.',
+        responses: {
+          200: {
+            description: 'API and database are operational',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/HealthCheck' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/auth/signup': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'Register New User Account',
+        description: 'Creates a new user account with bcrypt password hashing and returns the created user profile.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name', 'email', 'password'],
+                properties: {
+                  name: { type: 'string', example: 'Samarth Patel' },
+                  email: { type: 'string', format: 'email', example: 'samarth@samarth.tech' },
+                  password: { type: 'string', format: 'password', minLength: 4, example: 'SecurePassword123' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Account created successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: { type: 'string', example: 'Account created successfully! Please log in with your credentials.' },
+                    user: { $ref: '#/components/schemas/User' },
+                  },
+                },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/api/auth/login': {
+      post: {
+        tags: ['Authentication'],
+        summary: 'Log In User and Issue JWT Token',
+        description: 'Authenticates user email and password against PostgreSQL and returns a signed 7-day JWT Bearer token.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email', 'password'],
+                properties: {
+                  email: { type: 'string', format: 'email', example: 'samarth@samarth.tech' },
+                  password: { type: 'string', format: 'password', example: 'SecurePassword123' },
+                  rememberMe: { type: 'boolean', example: true },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Authentication successful',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/AuthResponse' },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          404: { $ref: '#/components/responses/NotFound' },
+          500: { $ref: '#/components/responses/ServerError' },
+        },
+      },
+    },
+    '/api/auth/me': {
+      get: {
+        tags: ['Authentication'],
+        summary: 'Verify Current JWT Session',
+        description: 'Validates the provided Bearer token and returns the authenticated user profile.',
+        security: [
+          {
+            BearerAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Authenticated session profile',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    user: { $ref: '#/components/schemas/User' },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          404: { $ref: '#/components/responses/NotFound' },
+        },
+      },
+    },
     '/api/expenses': {
       get: {
         tags: ['Expenses'],
@@ -532,7 +671,45 @@ export const swaggerSpec = {
     },
   },
   components: {
+    securitySchemes: {
+      BearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Enter your JWT Bearer token obtained from /api/auth/login to authenticate endpoints',
+      },
+    },
     schemas: {
+      User: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', example: 'usr_cm7abc123' },
+          name: { type: 'string', example: 'Samarth Patel' },
+          email: { type: 'string', format: 'email', example: 'samarth@samarth.tech' },
+          initials: { type: 'string', example: 'SP' },
+          createdAt: { type: 'string', format: 'date-time', example: '2026-10-13T12:00:00.000Z' },
+        },
+      },
+      AuthResponse: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean', example: true },
+          token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+          message: { type: 'string', example: 'Login successful' },
+          user: { $ref: '#/components/schemas/User' },
+        },
+      },
+      HealthCheck: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', example: 'healthy' },
+          service: { type: 'string', example: 'Expense Tracker Express API' },
+          uptime: { type: 'integer', example: 3420 },
+          timestamp: { type: 'string', format: 'date-time', example: '2026-10-13T12:00:00.000Z' },
+          environment: { type: 'string', example: 'production' },
+          database: { type: 'string', example: 'postgresql' },
+        },
+      },
       ExpenseCategory: {
         type: 'object',
         properties: {
