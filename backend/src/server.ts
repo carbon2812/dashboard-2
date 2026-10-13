@@ -351,7 +351,7 @@ app.get('/api/expenses', async (req: Request, res: Response) => {
     if (req.query.maxAmount) filters.maxAmount = Number(req.query.maxAmount);
 
     const result = await getExpenses(filters);
-    res.json({ success: true, ...result });
+    res.json({ success: true, data: result });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

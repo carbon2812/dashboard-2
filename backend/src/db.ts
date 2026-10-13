@@ -647,9 +647,8 @@ export async function deleteExpense(id: string): Promise<boolean> {
 
 // --- Dashboard Aggregations & Analytics ---
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const data = ensureDataFile();
-  const expenses = data.expenses;
-  const categories = data.categories;
+  const expenses = await getExpenses();
+  const categories = await getCategories();
 
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const totalReceipts = expenses.filter(e => Boolean(e.attachment)).length;

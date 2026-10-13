@@ -81,7 +81,7 @@ export function EditExpenseModal({
       }
 
       setAttachment(data.file || data.data);
-      success('Bill Synced', `${file.name} uploaded to VPS storage`);
+      success('Bill Synced', `${file.name} uploaded successfully`);
     } catch (err: any) {
       toastError('Upload Failed', err.message);
     } finally {

@@ -20,16 +20,19 @@ import {
   Sun,
   Moon,
   Laptop,
+  LogOut,
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { StorageStatus } from '@/types';
 import { useToast } from '@/context/ToastContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SettingsPage() {
   const { success, error: toastError, info } = useToast();
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const { user, logout } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [storageStatus, setStorageStatus] = useState<StorageStatus | null>(null);
@@ -79,7 +82,7 @@ export default function SettingsPage() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error);
 
-      success('Test Upload Successful', `Receipt saved to VPS /uploads: ${data.file?.filename || 'test-receipt.pdf'}`);
+      success('Test Upload Successful', `Receipt saved: ${data.file?.filename || 'test-receipt.pdf'}`);
       checkStorageStatus();
     } catch (err: any) {
       toastError('Test Upload Failed', err.message);
@@ -111,14 +114,14 @@ export default function SettingsPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <Header
           title="System Settings"
-          subtitle="Manage corporate profile, VPS local storage, and data preferences"
+          subtitle="Manage corporate profile, receipt storage, and account preferences"
           onMobileMenuToggle={() => setMobileMenuOpen((prev) => !prev)}
           onQuickAdd={() => {}}
         />
 
         <main className="flex-1 p-6 sm:p-8 space-y-8 max-w-4xl mx-auto w-full">
 
-          {/* Section 1: VPS Local Storage Integration */}
+          {/* Section 1: Receipt & Document Storage */}
           <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-card space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
               <div className="flex items-center gap-3.5">
@@ -127,13 +130,13 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <span>VPS Local Storage</span>
+                    <span>Receipt & Document Storage</span>
                     <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
-                      Docker Persistent
+                      Persistent
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Local disk storage for PDF and Image receipts served publicly at /uploads with Docker volume persistence
+                    Local disk storage for PDF and Image receipts served securely at /uploads with volume persistence
                   </p>
                 </div>
               </div>
@@ -166,7 +169,7 @@ export default function SettingsPage() {
                 <div className="mt-1 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
                   <span className="font-bold text-sm text-slate-900">
-                    {storageStatus?.provider || 'VPS Local Storage'}
+                    {storageStatus?.provider || 'Secure Local Storage'}
                   </span>
                 </div>
               </div>
@@ -515,6 +518,31 @@ export default function SettingsPage() {
                 className="px-4 py-2 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 text-rose-700 text-xs font-semibold transition-colors shrink-0"
               >
                 Clear All Expenses
+              </button>
+            </div>
+          </div>
+
+          {/* Section 6: Account Session & Sign Out */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-card space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
+                  <LogOut className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Account Session</h3>
+                  <p className="text-xs text-slate-500">
+                    {user ? `Signed in as ${user.name} (${user.email})` : 'Active workspace session'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out</span>
               </button>
             </div>
           </div>

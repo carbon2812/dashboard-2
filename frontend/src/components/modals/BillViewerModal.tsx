@@ -90,7 +90,7 @@ export function BillViewerModal({
               {/* Storage Status Indicator */}
               <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-medium border border-sky-100">
                 <UploadCloud className="w-3.5 h-3.5" />
-                <span>VPS Storage</span>
+                <span>Verified Storage</span>
               </div>
 
               {/* View Original / Open Externally */}
@@ -149,7 +149,7 @@ export function BillViewerModal({
                 </div>
                 <h4 className="text-base font-bold text-slate-900">{attachment.name}</h4>
                 <p className="mt-1 text-xs text-slate-500">
-                  Document files are stored securely in VPS storage. You can inspect the document details or download it below.
+                  Document files are stored securely. You can inspect the document details or download it below.
                 </p>
 
                 <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-left text-xs space-y-1">
@@ -187,7 +187,7 @@ export function BillViewerModal({
           <div className="px-6 py-3.5 bg-white border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>VPS Local Storage Asset: <span className="font-mono text-slate-700">{attachment.filename || attachment.name}</span></span>
+              <span>Attachment Asset: <span className="font-mono text-slate-700">{attachment.filename || attachment.name}</span></span>
             </div>
             <button
               onClick={onClose}

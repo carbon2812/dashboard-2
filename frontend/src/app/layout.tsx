@@ -7,7 +7,7 @@ import { AuthGuard } from '@/components/AuthGuard';
 
 export const metadata: Metadata = {
   title: 'Expense Tracker',
-  description: 'Expense Tracker - Modern corporate and personal expense management with VPS receipt storage and custom category intelligence.',
+  description: 'Expense Tracker - Modern corporate and personal expense management with receipt storage and custom category intelligence.',
   icons: {
     icon: 'data:,',
   },

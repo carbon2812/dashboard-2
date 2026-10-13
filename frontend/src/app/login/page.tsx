@@ -251,7 +251,7 @@ export default function LoginPage() {
         <div className="flex items-center gap-4 text-[11px]">
           <span className="flex items-center gap-1.5">
             <HardDrive className="w-3.5 h-3.5 text-sky-400" />
-            VPS Local Storage
+            Secure Receipt Storage
           </span>
           <span>•</span>
           <span className="flex items-center gap-1.5">

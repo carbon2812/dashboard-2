@@ -99,7 +99,7 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <Header
           title="Executive Dashboard"
-          subtitle="Real-time financial disbursements, categories & VPS receipt storage"
+          subtitle="Real-time financial disbursements, categories & expense tracking"
           onMobileMenuToggle={() => setMobileMenuOpen((prev) => !prev)}
           onQuickAdd={() => setIsAddModalOpen(true)}
         />
@@ -116,7 +116,7 @@ export default function DashboardPage() {
                 Fintech Expense Intelligence
               </h2>
               <p className="text-xs sm:text-sm text-indigo-200/80 max-w-xl">
-                Track custom category allocations, view spending velocity, and preserve compliant bill receipts in VPS local storage.
+                Track custom category allocations, view spending velocity, and preserve compliant bill receipts with secure digital records.
               </p>
             </div>
 
@@ -161,8 +161,8 @@ export default function DashboardPage() {
               <StatCard
                 title="Verified Bill Receipts"
                 value={`${stats.totalReceipts} Synced`}
-                icon={UploadCloud}
-                subtitle="Stored in VPS /uploads"
+                icon={FileCheck2}
+                subtitle="Attached to expense logs"
                 iconColor="text-emerald-600"
                 iconBg="bg-emerald-50 border-emerald-100"
               />
@@ -203,7 +203,7 @@ export default function DashboardPage() {
                   className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
                 >
                   <span>Manage</span>
-                  <ArrowRight className="w-3 h-3" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
@@ -227,6 +227,26 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex items-center gap-3">
+                {stats && stats.recentExpenses.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      if (!confirm('Are you sure you want to clear all recorded disbursements?')) return;
+                      try {
+                        const res = await fetch('/api/reset', { method: 'POST' });
+                        if (res.ok) {
+                          success('Cleared', 'Disbursements cleared successfully.');
+                          fetchData();
+                        }
+                      } catch (e: any) {
+                        toastError('Clear Failed', e.message);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 px-3 py-1.5 rounded-xl hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
+                    title="Remove all dummy / test expense records"
+                  >
+                    <span>Clear Dummy Data</span>
+                  </button>
+                )}
                 <Link
                   href="/expenses"
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 px-3 py-1.5 rounded-xl hover:bg-indigo-50 transition-colors"
@@ -243,7 +263,7 @@ export default function DashboardPage() {
               <div className="p-8">
                 <EmptyState
                   icon={Receipt}
-                  title="No expenses logged yet"
+                  title="No disbursements logged yet"
                   description="Begin recording company expenditures with attached bills."
                   actionLabel="Add Expense"
                   onAction={() => setIsAddModalOpen(true)}

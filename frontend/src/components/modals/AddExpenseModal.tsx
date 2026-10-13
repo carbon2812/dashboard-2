@@ -115,7 +115,7 @@ export function AddExpenseModal({
       }
 
       setAttachment(data.file || data.data);
-      success('Bill Attached', `${file.name} uploaded to VPS storage`);
+      success('Bill Attached', `${file.name} uploaded successfully`);
     } catch (err: any) {
       setUploadError(err.message || 'File upload failed');
       toastError('Upload Failed', err.message);
@@ -366,7 +366,7 @@ export function AddExpenseModal({
               />
             </div>
 
-            {/* Bill Attachment / VPS Storage Drag & Drop Zone */}
+            {/* Bill Attachment Drag & Drop Zone */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-slate-700">
@@ -374,7 +374,7 @@ export function AddExpenseModal({
                 </label>
                 <span className="flex items-center gap-1 text-[11px] text-sky-600 font-medium">
                   <UploadCloud className="w-3 h-3" />
-                  VPS Storage
+                  File Upload
                 </span>
               </div>
 
