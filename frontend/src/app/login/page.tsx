@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -92,13 +93,16 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <Link
-          href="/signup"
-          className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1.5 bg-slate-900/60 border border-slate-800/80 px-3.5 py-1.5 rounded-full backdrop-blur-md"
-        >
-          <UserPlus className="w-3.5 h-3.5" />
-          <span>New User? Create Account</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Link
+            href="/signup"
+            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1.5 bg-slate-900/60 border border-slate-800/80 px-3.5 py-1.5 rounded-full backdrop-blur-md"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>New User? Create Account</span>
+          </Link>
+        </div>
       </header>
 
       {/* Main Login Card Section */}

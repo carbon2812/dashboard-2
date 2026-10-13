@@ -11,6 +11,7 @@ import {
 import { CategoryBreakdownItem } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { getCategoryIcon } from '@/lib/icons';
+import { useTheme } from '@/context/ThemeContext';
 
 interface CategoryPieChartProps {
   data: CategoryBreakdownItem[];
@@ -20,6 +21,7 @@ interface CategoryPieChartProps {
 export function CategoryPieChart({ data, totalExpenses }: CategoryPieChartProps) {
   const [mounted, setMounted] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
@@ -89,7 +91,7 @@ export function CategoryPieChart({ data, totalExpenses }: CategoryPieChartProps)
                 <Cell
                   key={`cell-${entry.categoryId}`}
                   fill={entry.color || '#6366f1'}
-                  stroke="#ffffff"
+                  stroke={resolvedTheme === 'dark' ? '#121a29' : '#ffffff'}
                   strokeWidth={2}
                   className="transition-all duration-300 outline-none"
                   style={{

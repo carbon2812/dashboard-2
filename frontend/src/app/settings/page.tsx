@@ -17,14 +17,19 @@ import {
   ExternalLink,
   Copy,
   Check,
+  Sun,
+  Moon,
+  Laptop,
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import { StorageStatus } from '@/types';
 import { useToast } from '@/context/ToastContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function SettingsPage() {
   const { success, error: toastError, info } = useToast();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [storageStatus, setStorageStatus] = useState<StorageStatus | null>(null);
@@ -278,6 +283,117 @@ export default function SettingsPage() {
                 className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm transition-all"
               >
                 Save Preferences
+              </button>
+            </div>
+          </div>
+
+          {/* Section: Appearance & Interface Theme */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-card space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
+                  {resolvedTheme === 'dark' ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>Appearance & Interface Theme</span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      {theme === 'system' ? `System (${resolvedTheme})` : resolvedTheme.toUpperCase()}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Customize your visual workspace across light, dark, and operating system themes
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+              {/* Light Mode */}
+              <button
+                type="button"
+                onClick={() => {
+                  setTheme('light');
+                  success('Theme Updated', 'Switched to Light mode');
+                }}
+                className={`p-4 rounded-2xl border text-left transition-all flex flex-col gap-3 ${
+                  theme === 'light'
+                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20'
+                    : 'border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/60'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="p-2 rounded-xl bg-amber-50 border border-amber-200/60 text-amber-600">
+                    <Sun className="w-5 h-5" />
+                  </div>
+                  {theme === 'light' && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-600 text-white">
+                      Active
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-900">Light Theme</div>
+                  <div className="text-xs text-slate-500 mt-0.5">Crisp slate canvas for bright environments</div>
+                </div>
+              </button>
+
+              {/* Dark Mode */}
+              <button
+                type="button"
+                onClick={() => {
+                  setTheme('dark');
+                  success('Theme Updated', 'Switched to Dark mode');
+                }}
+                className={`p-4 rounded-2xl border text-left transition-all flex flex-col gap-3 ${
+                  theme === 'dark'
+                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20'
+                    : 'border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/60'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="p-2 rounded-xl bg-slate-800 border border-slate-700 text-indigo-400">
+                    <Moon className="w-5 h-5" />
+                  </div>
+                  {theme === 'dark' && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-600 text-white">
+                      Active
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-900">Dark Theme</div>
+                  <div className="text-xs text-slate-500 mt-0.5">Deep Obsidian palette to reduce eye fatigue</div>
+                </div>
+              </button>
+
+              {/* System Sync */}
+              <button
+                type="button"
+                onClick={() => {
+                  setTheme('system');
+                  info('Theme Updated', 'Synchronized with System appearance');
+                }}
+                className={`p-4 rounded-2xl border text-left transition-all flex flex-col gap-3 ${
+                  theme === 'system'
+                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20'
+                    : 'border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/60'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="p-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600">
+                    <Laptop className="w-5 h-5" />
+                  </div>
+                  {theme === 'system' && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-600 text-white">
+                      Active
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-900">System Sync</div>
+                  <div className="text-xs text-slate-500 mt-0.5">Automatically follows your device settings</div>
+                </div>
               </button>
             </div>
           </div>

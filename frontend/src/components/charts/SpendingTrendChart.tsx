@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { MonthlyTrendItem, WeeklyTrendItem } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import { useTheme } from '@/context/ThemeContext';
 
 interface SpendingTrendChartProps {
   monthlyData: MonthlyTrendItem[];
@@ -21,6 +22,7 @@ interface SpendingTrendChartProps {
 export function SpendingTrendChart({ monthlyData, weeklyData }: SpendingTrendChartProps) {
   const [view, setView] = useState<'monthly' | 'weekly'>('monthly');
   const [mounted, setMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
@@ -101,7 +103,11 @@ export function SpendingTrendChart({ monthlyData, weeklyData }: SpendingTrendCha
                 <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              stroke={resolvedTheme === 'dark' ? '#1f2c45' : '#f1f5f9'}
+            />
             <XAxis
               dataKey="label"
               axisLine={false}

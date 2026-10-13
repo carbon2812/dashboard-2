@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
@@ -54,7 +55,10 @@ export function Header({
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Theme Toggle (Light / Dark) */}
+        <ThemeToggle />
+
         {/* Date Display Pill */}
         <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-medium text-slate-600">
           <Calendar className="w-3.5 h-3.5 text-slate-400" />

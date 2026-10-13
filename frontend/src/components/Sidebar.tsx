@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -182,6 +183,10 @@ export function Sidebar({
 
       {/* User Session & Workspace Footer */}
       <div className="p-3 border-t border-slate-100 space-y-2">
+        <div className="flex items-center justify-between px-2 py-0.5">
+          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Appearance</span>
+          <ThemeToggle />
+        </div>
         {user ? (
           <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/80">
             <Link
