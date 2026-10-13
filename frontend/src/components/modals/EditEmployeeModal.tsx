@@ -21,7 +21,8 @@ interface EditEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
   employee: Employee | null;
-  onEmployeeUpdated: () => void;
+  onEmployeeUpdated?: () => void;
+  onSuccess?: () => void;
 }
 
 const DEPARTMENTS = [
@@ -41,6 +42,7 @@ export function EditEmployeeModal({
   onClose,
   employee,
   onEmployeeUpdated,
+  onSuccess,
 }: EditEmployeeModalProps) {
   const { success, error: toastError } = useToast();
 
@@ -109,7 +111,8 @@ export function EditEmployeeModal({
       }
 
       success('Employee Updated', `Changes to ${name.trim()} saved.`);
-      onEmployeeUpdated();
+      if (onSuccess) onSuccess();
+      if (onEmployeeUpdated) onEmployeeUpdated();
       onClose();
     } catch (err: any) {
       toastError('Update Error', err.message);

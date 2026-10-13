@@ -19,7 +19,8 @@ import { useToast } from '@/context/ToastContext';
 interface AddEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onEmployeeAdded: () => void;
+  onEmployeeAdded?: () => void;
+  onSuccess?: () => void;
 }
 
 const DEPARTMENTS = [
@@ -38,6 +39,7 @@ export function AddEmployeeModal({
   isOpen,
   onClose,
   onEmployeeAdded,
+  onSuccess,
 }: AddEmployeeModalProps) {
   const { success, error: toastError } = useToast();
 
@@ -92,7 +94,8 @@ export function AddEmployeeModal({
       }
 
       success('Employee Added', `${name.trim()} added to company directory.`);
-      onEmployeeAdded();
+      if (onSuccess) onSuccess();
+      if (onEmployeeAdded) onEmployeeAdded();
       onClose();
 
       // Reset form
