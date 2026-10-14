@@ -18,6 +18,8 @@ import {
   FileText,
   CheckCircle2,
   Calendar,
+  FolderKanban,
+  Flag,
 } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
 import { Header } from '@/components/Header';
@@ -32,7 +34,7 @@ import { BillViewerModal } from '@/components/modals/BillViewerModal';
 import { DisburseSalaryModal } from '@/components/modals/DisburseSalaryModal';
 import { PaySlipModal } from '@/components/modals/PaySlipModal';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { DashboardStats, ExpenseCategory, Expense, Employee, SalaryPayment } from '@/types';
+import { DashboardStats, ExpenseCategory, Expense, Employee, SalaryPayment, Project } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
 
@@ -42,6 +44,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -59,15 +62,17 @@ export default function DashboardPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [statsRes, catRes, empRes] = await Promise.all([
+      const [statsRes, catRes, empRes, projRes] = await Promise.all([
         fetch('/api/stats'),
         fetch('/api/categories'),
         fetch('/api/employees'),
+        fetch('/api/projects'),
       ]);
 
       const statsData = await statsRes.json();
       const catData = await catRes.json();
       const empData = await empRes.json();
+      const projData = await projRes.json();
 
       if (statsData.success) {
         setStats(statsData.data);
@@ -77,6 +82,9 @@ export default function DashboardPage() {
       }
       if (empData.success) {
         setEmployees(empData.data || []);
+      }
+      if (projData.success && Array.isArray(projData.data)) {
+        setProjects(projData.data);
       }
     } catch (err: any) {
       console.error('Error fetching dashboard data:', err);
@@ -374,6 +382,85 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Active Projects & Delivery Portfolio Card */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-card space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-2xs">
+                  <FolderKanban className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 tracking-tight">Active Projects & Milestones</h3>
+                  <p className="text-xs text-slate-500">Key client deliverables, progress velocity, and budget caps</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/projects"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 px-3.5 py-2 rounded-xl hover:bg-indigo-50 transition-colors"
+                >
+                  <span>Project Board & Kanban</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {projects.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {projects.slice(0, 3).map((proj) => {
+                  const tasksCount = proj.tasks?.length || 0;
+                  const doneCount = proj.tasks?.filter((t) => t.status === 'Done').length || 0;
+                  return (
+                    <Link
+                      key={proj.id}
+                      href="/projects"
+                      className="group p-4 rounded-2xl border border-slate-200/80 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col justify-between bg-slate-50/50 hover:bg-white"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100/70 px-2 py-0.5 rounded-md">
+                            {proj.category || 'General'}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-500 bg-slate-200/60 px-2 py-0.5 rounded-full">
+                            {proj.status}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-xs text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                          {proj.title}
+                        </h4>
+                        {proj.client && (
+                          <p className="text-[11px] text-slate-400 font-medium truncate">{proj.client}</p>
+                        )}
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-slate-200/60 space-y-1.5">
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-500 font-medium">Progress</span>
+                          <span className="font-bold text-indigo-600">{proj.progress}%</span>
+                        </div>
+                        <div className="w-full bg-slate-200/80 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-indigo-600 h-full rounded-full transition-all duration-500"
+                            style={{ width: `${proj.progress}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                          <span>Due {proj.deadline}</span>
+                          <span>{doneCount}/{tasksCount} tasks</span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-slate-400 text-xs italic">
+                No active projects tracked yet. Launch a project from the Project Management tab.
               </div>
             )}
           </div>

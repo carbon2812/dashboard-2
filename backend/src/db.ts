@@ -12,6 +12,9 @@ import {
   Employee,
   SalaryPayment,
   PayrollStats,
+  Project,
+  ProjectTask,
+  ProjectStats,
 } from './types';
 
 export { prisma };
@@ -92,6 +95,242 @@ const DEFAULT_CATEGORIES: ExpenseCategory[] = [
 
 const DEFAULT_EXPENSES: Expense[] = [];
 
+const DEFAULT_PROJECTS: Project[] = [
+  {
+    id: 'proj_ai_analytics',
+    title: 'AI Financial Analytics & Forecasting',
+    description: 'Enterprise machine learning engine for predictive cashflow analysis and real-time anomaly detection.',
+    client: 'Apex Financial Global',
+    category: 'Fintech & AI',
+    status: 'In Progress',
+    priority: 'Urgent',
+    budget: 1250000,
+    spent: 780000,
+    currency: 'INR',
+    startDate: '2026-02-01',
+    deadline: '2026-06-15',
+    progress: 65,
+    teamMembers: ['Aarav Sharma', 'Priya Patel', 'Rohan Mehta'],
+    tasks: [
+      {
+        id: 'task_ai_1',
+        projectId: 'proj_ai_analytics',
+        title: 'Core telemetry data pipeline & Apache Kafka ingestion',
+        description: 'Establish high throughput streaming from banking ledger',
+        status: 'Done',
+        priority: 'High',
+        dueDate: '2026-02-28',
+        assignedEmployeeName: 'Aarav Sharma',
+        createdAt: '2026-02-01T10:00:00.000Z',
+        completedAt: '2026-02-27T16:00:00.000Z',
+      },
+      {
+        id: 'task_ai_2',
+        projectId: 'proj_ai_analytics',
+        title: 'Train ensemble models for 90-day expense forecasting',
+        description: 'Achieve >92% accuracy across quarterly variance benchmarks',
+        status: 'Done',
+        priority: 'Urgent',
+        dueDate: '2026-03-20',
+        assignedEmployeeName: 'Rohan Mehta',
+        createdAt: '2026-02-15T10:00:00.000Z',
+        completedAt: '2026-03-18T14:30:00.000Z',
+      },
+      {
+        id: 'task_ai_3',
+        projectId: 'proj_ai_analytics',
+        title: 'Build interactive visual charts & insight drill-down UI',
+        description: 'Implement responsive dark-mode charts with drill-down metrics',
+        status: 'In Progress',
+        priority: 'High',
+        dueDate: '2026-04-30',
+        assignedEmployeeName: 'Priya Patel',
+        createdAt: '2026-03-01T10:00:00.000Z',
+      },
+      {
+        id: 'task_ai_4',
+        projectId: 'proj_ai_analytics',
+        title: 'Enterprise SOC2 Type II audit and automated penetrations test',
+        description: 'Complete mandatory compliance sign-off with external auditor',
+        status: 'Todo',
+        priority: 'Medium',
+        dueDate: '2026-06-01',
+        assignedEmployeeName: 'Aarav Sharma',
+        createdAt: '2026-03-10T10:00:00.000Z',
+      },
+    ],
+    createdAt: '2026-02-01T09:00:00.000Z',
+    updatedAt: '2026-04-10T11:00:00.000Z',
+  },
+  {
+    id: 'proj_mobile_banking',
+    title: 'NextGen Mobile Banking Suite',
+    description: 'Cross-platform iOS and Android mobile banking application featuring zero-knowledge authentication.',
+    client: 'Horizon NeoBank Inc',
+    category: 'Mobile Application',
+    status: 'In Review',
+    priority: 'High',
+    budget: 920000,
+    spent: 840000,
+    currency: 'INR',
+    startDate: '2026-01-10',
+    deadline: '2026-04-25',
+    progress: 88,
+    teamMembers: ['Priya Patel', 'Rohan Mehta'],
+    tasks: [
+      {
+        id: 'task_mob_1',
+        projectId: 'proj_mobile_banking',
+        title: 'Interactive design prototype and Figma design system token handoff',
+        status: 'Done',
+        priority: 'Medium',
+        dueDate: '2026-02-05',
+        assignedEmployeeName: 'Priya Patel',
+        createdAt: '2026-01-10T10:00:00.000Z',
+        completedAt: '2026-02-04T18:00:00.000Z',
+      },
+      {
+        id: 'task_mob_2',
+        projectId: 'proj_mobile_banking',
+        title: 'Biometric FaceID / Fingerprint & hardware key auth',
+        status: 'Done',
+        priority: 'Urgent',
+        dueDate: '2026-03-10',
+        assignedEmployeeName: 'Rohan Mehta',
+        createdAt: '2026-01-20T10:00:00.000Z',
+        completedAt: '2026-03-08T17:00:00.000Z',
+      },
+      {
+        id: 'task_mob_3',
+        projectId: 'proj_mobile_banking',
+        title: 'Peer-to-peer instant split bill and UPI payment gateway',
+        status: 'Done',
+        priority: 'High',
+        dueDate: '2026-03-31',
+        assignedEmployeeName: 'Rohan Mehta',
+        createdAt: '2026-02-01T10:00:00.000Z',
+        completedAt: '2026-03-30T12:00:00.000Z',
+      },
+      {
+        id: 'task_mob_4',
+        projectId: 'proj_mobile_banking',
+        title: 'App Store and Google Play beta flight test & QA review',
+        status: 'In Progress',
+        priority: 'High',
+        dueDate: '2026-04-20',
+        assignedEmployeeName: 'Priya Patel',
+        createdAt: '2026-03-15T10:00:00.000Z',
+      },
+    ],
+    createdAt: '2026-01-10T09:00:00.000Z',
+    updatedAt: '2026-04-08T15:30:00.000Z',
+  },
+  {
+    id: 'proj_cloud_migration',
+    title: 'Cloud Infrastructure & Multi-Region VPC',
+    description: 'High availability AWS migration with automated Terraform orchestration and zero downtime.',
+    client: 'Internal Enterprise Operations',
+    category: 'DevOps & Cloud',
+    status: 'In Progress',
+    priority: 'Medium',
+    budget: 450000,
+    spent: 195000,
+    currency: 'INR',
+    startDate: '2026-03-01',
+    deadline: '2026-07-30',
+    progress: 42,
+    teamMembers: ['Aarav Sharma'],
+    tasks: [
+      {
+        id: 'task_cloud_1',
+        projectId: 'proj_cloud_migration',
+        title: 'IaC Terraform declarative scripts for VPC subnets & security groups',
+        status: 'Done',
+        priority: 'High',
+        dueDate: '2026-03-25',
+        assignedEmployeeName: 'Aarav Sharma',
+        createdAt: '2026-03-01T10:00:00.000Z',
+        completedAt: '2026-03-24T19:00:00.000Z',
+      },
+      {
+        id: 'task_cloud_2',
+        projectId: 'proj_cloud_migration',
+        title: 'PostgreSQL Aurora active-active cluster failover testing',
+        status: 'In Progress',
+        priority: 'Urgent',
+        dueDate: '2026-05-15',
+        assignedEmployeeName: 'Aarav Sharma',
+        createdAt: '2026-03-25T10:00:00.000Z',
+      },
+      {
+        id: 'task_cloud_3',
+        projectId: 'proj_cloud_migration',
+        title: 'Kubernetes horizontal pod autoscaler and Prometheus alerting',
+        status: 'Todo',
+        priority: 'Medium',
+        dueDate: '2026-06-30',
+        assignedEmployeeName: 'Aarav Sharma',
+        createdAt: '2026-04-01T10:00:00.000Z',
+      },
+    ],
+    createdAt: '2026-03-01T09:00:00.000Z',
+    updatedAt: '2026-04-12T14:00:00.000Z',
+  },
+  {
+    id: 'proj_crm_portal',
+    title: 'Enterprise Customer Portal & Billing System',
+    description: 'Self-serve client subscription management, recurring billing, and automated invoice dispatches.',
+    client: 'Zenith Retail Network',
+    category: 'SaaS Platform',
+    status: 'Completed',
+    priority: 'High',
+    budget: 680000,
+    spent: 645000,
+    currency: 'INR',
+    startDate: '2025-11-01',
+    deadline: '2026-02-28',
+    progress: 100,
+    teamMembers: ['Aarav Sharma', 'Priya Patel'],
+    tasks: [
+      {
+        id: 'task_crm_1',
+        projectId: 'proj_crm_portal',
+        title: 'Subscription lifecycle state machine & Stripe webhooks',
+        status: 'Done',
+        priority: 'High',
+        dueDate: '2025-12-15',
+        assignedEmployeeName: 'Aarav Sharma',
+        createdAt: '2025-11-01T10:00:00.000Z',
+        completedAt: '2025-12-14T11:00:00.000Z',
+      },
+      {
+        id: 'task_crm_2',
+        projectId: 'proj_crm_portal',
+        title: 'PDF Invoice generator with digital GST taxation signature',
+        status: 'Done',
+        priority: 'Medium',
+        dueDate: '2026-01-20',
+        assignedEmployeeName: 'Priya Patel',
+        createdAt: '2025-12-15T10:00:00.000Z',
+        completedAt: '2026-01-18T16:00:00.000Z',
+      },
+      {
+        id: 'task_crm_3',
+        projectId: 'proj_crm_portal',
+        title: 'Client acceptance sign-off and production release deployment',
+        status: 'Done',
+        priority: 'High',
+        dueDate: '2026-02-25',
+        assignedEmployeeName: 'Aarav Sharma',
+        createdAt: '2026-01-25T10:00:00.000Z',
+        completedAt: '2026-02-24T18:00:00.000Z',
+      },
+    ],
+    createdAt: '2025-11-01T09:00:00.000Z',
+    updatedAt: '2026-02-28T17:00:00.000Z',
+  },
+];
+
 // Persistent File Store path
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const LOCAL_DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -102,6 +341,7 @@ interface LocalDBData {
   expenses: Expense[];
   employees?: Employee[];
   salaryPayments?: SalaryPayment[];
+  projects?: Project[];
 }
 
 function ensureDataFile(): LocalDBData {
@@ -120,6 +360,9 @@ function ensureDataFile(): LocalDBData {
       const initial: LocalDBData = {
         categories: DEFAULT_CATEGORIES,
         expenses: DEFAULT_EXPENSES,
+        employees: [],
+        salaryPayments: [],
+        projects: DEFAULT_PROJECTS,
       };
       fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
       return initial;
@@ -131,12 +374,16 @@ function ensureDataFile(): LocalDBData {
     if (!parsed.expenses || !Array.isArray(parsed.expenses)) parsed.expenses = DEFAULT_EXPENSES;
     if (!parsed.employees || !Array.isArray(parsed.employees)) parsed.employees = [];
     if (!parsed.salaryPayments || !Array.isArray(parsed.salaryPayments)) parsed.salaryPayments = [];
+    if (!parsed.projects || !Array.isArray(parsed.projects) || parsed.projects.length === 0) {
+      parsed.projects = DEFAULT_PROJECTS;
+    }
     return parsed;
   } catch (err) {
     console.error('Error loading local db file:', err);
-    return { categories: DEFAULT_CATEGORIES, expenses: DEFAULT_EXPENSES };
+    return { categories: DEFAULT_CATEGORIES, expenses: DEFAULT_EXPENSES, projects: DEFAULT_PROJECTS };
   }
 }
+
 
 function saveDataFile(data: LocalDBData) {
   try {
@@ -1357,3 +1604,452 @@ export async function getPayrollStats(userId?: string): Promise<PayrollStats> {
     recentPayments,
   };
 }
+
+// -------------------------------------------------------------
+// 8. Project Management Operations (Prisma + Local File Fallback)
+// -------------------------------------------------------------
+
+export async function getProjects(
+  userId?: string,
+  filters?: { status?: string; priority?: string; search?: string }
+): Promise<Project[]> {
+  if (await isPrismaAvailable()) {
+    try {
+      const where: any = {};
+      if (userId) where.userId = userId;
+      if (filters?.status && filters.status !== 'ALL') where.status = filters.status;
+      if (filters?.priority && filters.priority !== 'ALL') where.priority = filters.priority;
+
+      const records = await (prisma as any).project.findMany({
+        where,
+        include: {
+          tasks: {
+            orderBy: { createdAt: 'asc' },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      let mapped: Project[] = records.map((p: any) => ({
+        id: p.id,
+        userId: p.userId || undefined,
+        title: p.title,
+        description: p.description || undefined,
+        client: p.client || undefined,
+        category: p.category || 'General',
+        status: p.status as any,
+        priority: p.priority as any,
+        budget: p.budget || 0,
+        spent: p.spent || 0,
+        currency: p.currency || 'INR',
+        startDate: p.startDate,
+        deadline: p.deadline,
+        progress: p.progress || 0,
+        teamMembers: p.teamMembers || [],
+        tasks: (p.tasks || []).map((t: any) => ({
+          id: t.id,
+          projectId: t.projectId,
+          title: t.title,
+          description: t.description || undefined,
+          assignedEmployeeId: t.assignedEmployeeId || undefined,
+          assignedEmployeeName: t.assignedEmployeeName || undefined,
+          status: t.status as any,
+          priority: t.priority as any,
+          dueDate: t.dueDate || undefined,
+          createdAt: t.createdAt.toISOString(),
+          completedAt: t.completedAt ? t.completedAt.toISOString() : undefined,
+        })),
+        createdAt: p.createdAt.toISOString(),
+        updatedAt: p.updatedAt ? p.updatedAt.toISOString() : undefined,
+      }));
+
+      if (filters?.search && filters.search.trim()) {
+        const q = filters.search.toLowerCase().trim();
+        mapped = mapped.filter(
+          (p) =>
+            p.title.toLowerCase().includes(q) ||
+            (p.client && p.client.toLowerCase().includes(q)) ||
+            (p.description && p.description.toLowerCase().includes(q)) ||
+            (p.category && p.category.toLowerCase().includes(q))
+        );
+      }
+
+      return mapped;
+    } catch (err) {
+      console.warn('Prisma getProjects fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  let list = data.projects || [];
+  if (userId) {
+    list = list.filter((p) => !p.userId || p.userId === userId);
+  }
+
+  if (filters?.status && filters.status !== 'ALL') {
+    list = list.filter((p) => p.status === filters.status);
+  }
+  if (filters?.priority && filters.priority !== 'ALL') {
+    list = list.filter((p) => p.priority === filters.priority);
+  }
+  if (filters?.search && filters.search.trim()) {
+    const q = filters.search.toLowerCase().trim();
+    list = list.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        (p.client && p.client.toLowerCase().includes(q)) ||
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q))
+    );
+  }
+
+  return list;
+}
+
+export async function getProjectById(id: string, userId?: string): Promise<Project | null> {
+  const all = await getProjects(userId);
+  return all.find((p) => p.id === id) || null;
+}
+
+export async function createProject(
+  input: Omit<Project, 'id' | 'createdAt' | 'updatedAt'> & { userId?: string }
+): Promise<Project> {
+  const tasks = (input.tasks || []).map((t, idx) => ({
+    ...t,
+    id: t.id || `task_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
+    projectId: '', // will be assigned below
+    status: t.status || 'Todo',
+    createdAt: t.createdAt || new Date().toISOString(),
+  }));
+
+  // Calculate initial progress based on tasks if present
+  let initialProgress = input.progress ?? 0;
+  if (tasks.length > 0) {
+    const doneCount = tasks.filter((t) => t.status === 'Done').length;
+    initialProgress = Math.round((doneCount / tasks.length) * 100);
+  }
+
+  if (await isPrismaAvailable()) {
+    try {
+      const created = await (prisma as any).project.create({
+        data: {
+          userId: input.userId,
+          title: input.title.trim(),
+          description: input.description?.trim() || null,
+          client: input.client?.trim() || null,
+          category: input.category || 'General',
+          status: input.status || 'In Progress',
+          priority: input.priority || 'Medium',
+          budget: Number(input.budget) || 0,
+          spent: Number(input.spent) || 0,
+          currency: input.currency || 'INR',
+          startDate: input.startDate || new Date().toISOString().split('T')[0],
+          deadline: input.deadline,
+          progress: initialProgress,
+          teamMembers: input.teamMembers || [],
+          tasks: {
+            create: tasks.map((t) => ({
+              title: t.title,
+              description: t.description || null,
+              assignedEmployeeId: t.assignedEmployeeId || null,
+              assignedEmployeeName: t.assignedEmployeeName || null,
+              status: t.status || 'Todo',
+              priority: t.priority || 'Medium',
+              dueDate: t.dueDate || null,
+            })),
+          },
+        },
+        include: { tasks: true },
+      });
+
+      return {
+        id: created.id,
+        userId: created.userId || undefined,
+        title: created.title,
+        description: created.description || undefined,
+        client: created.client || undefined,
+        category: created.category,
+        status: created.status as any,
+        priority: created.priority as any,
+        budget: created.budget,
+        spent: created.spent,
+        currency: created.currency,
+        startDate: created.startDate,
+        deadline: created.deadline,
+        progress: created.progress,
+        teamMembers: created.teamMembers || [],
+        tasks: (created.tasks || []).map((t: any) => ({
+          id: t.id,
+          projectId: t.projectId,
+          title: t.title,
+          description: t.description || undefined,
+          assignedEmployeeId: t.assignedEmployeeId || undefined,
+          assignedEmployeeName: t.assignedEmployeeName || undefined,
+          status: t.status as any,
+          priority: t.priority as any,
+          dueDate: t.dueDate || undefined,
+          createdAt: t.createdAt.toISOString(),
+          completedAt: t.completedAt ? t.completedAt.toISOString() : undefined,
+        })),
+        createdAt: created.createdAt.toISOString(),
+        updatedAt: created.updatedAt ? created.updatedAt.toISOString() : undefined,
+      };
+    } catch (err) {
+      console.warn('Prisma createProject fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  if (!data.projects) data.projects = [];
+
+  const projectId = `proj_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const finalizedTasks: ProjectTask[] = tasks.map((t) => ({
+    ...t,
+    projectId,
+  }));
+
+  const newProject: Project = {
+    ...input,
+    id: projectId,
+    progress: initialProgress,
+    tasks: finalizedTasks,
+    teamMembers: input.teamMembers || [],
+    currency: input.currency || 'INR',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  data.projects.unshift(newProject);
+  saveDataFile(data);
+  return newProject;
+}
+
+export async function updateProject(
+  id: string,
+  updates: Partial<Project>,
+  userId?: string
+): Promise<Project | null> {
+  if (await isPrismaAvailable()) {
+    try {
+      const where: any = { id };
+      if (userId) where.userId = userId;
+
+      const dataToUpdate: any = {};
+      if (updates.title !== undefined) dataToUpdate.title = updates.title.trim();
+      if (updates.description !== undefined) dataToUpdate.description = updates.description?.trim() || null;
+      if (updates.client !== undefined) dataToUpdate.client = updates.client?.trim() || null;
+      if (updates.category !== undefined) dataToUpdate.category = updates.category;
+      if (updates.status !== undefined) dataToUpdate.status = updates.status;
+      if (updates.priority !== undefined) dataToUpdate.priority = updates.priority;
+      if (updates.budget !== undefined) dataToUpdate.budget = Number(updates.budget);
+      if (updates.spent !== undefined) dataToUpdate.spent = Number(updates.spent);
+      if (updates.currency !== undefined) dataToUpdate.currency = updates.currency;
+      if (updates.startDate !== undefined) dataToUpdate.startDate = updates.startDate;
+      if (updates.deadline !== undefined) dataToUpdate.deadline = updates.deadline;
+      if (updates.progress !== undefined) dataToUpdate.progress = Math.min(100, Math.max(0, Number(updates.progress)));
+      if (updates.teamMembers !== undefined) dataToUpdate.teamMembers = updates.teamMembers;
+
+      const updated = await (prisma as any).project.update({
+        where,
+        data: dataToUpdate,
+        include: { tasks: true },
+      });
+
+      return {
+        id: updated.id,
+        userId: updated.userId || undefined,
+        title: updated.title,
+        description: updated.description || undefined,
+        client: updated.client || undefined,
+        category: updated.category,
+        status: updated.status as any,
+        priority: updated.priority as any,
+        budget: updated.budget,
+        spent: updated.spent,
+        currency: updated.currency,
+        startDate: updated.startDate,
+        deadline: updated.deadline,
+        progress: updated.progress,
+        teamMembers: updated.teamMembers || [],
+        tasks: (updated.tasks || []).map((t: any) => ({
+          id: t.id,
+          projectId: t.projectId,
+          title: t.title,
+          description: t.description || undefined,
+          assignedEmployeeId: t.assignedEmployeeId || undefined,
+          assignedEmployeeName: t.assignedEmployeeName || undefined,
+          status: t.status as any,
+          priority: t.priority as any,
+          dueDate: t.dueDate || undefined,
+          createdAt: t.createdAt.toISOString(),
+          completedAt: t.completedAt ? t.completedAt.toISOString() : undefined,
+        })),
+        createdAt: updated.createdAt.toISOString(),
+        updatedAt: updated.updatedAt ? updated.updatedAt.toISOString() : undefined,
+      };
+    } catch (err) {
+      console.warn('Prisma updateProject fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  if (!data.projects) data.projects = [];
+  const index = data.projects.findIndex((p) => p.id === id && (!userId || p.userId === userId));
+  if (index === -1) return null;
+
+  const current = data.projects[index];
+  const merged: Project = {
+    ...current,
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+
+  data.projects[index] = merged;
+  saveDataFile(data);
+  return merged;
+}
+
+export async function deleteProject(id: string, userId?: string): Promise<boolean> {
+  if (await isPrismaAvailable()) {
+    try {
+      const where: any = { id };
+      if (userId) where.userId = userId;
+      await (prisma as any).project.delete({ where });
+      return true;
+    } catch (err) {
+      console.warn('Prisma deleteProject fallback:', err);
+    }
+  }
+
+  const data = ensureDataFile();
+  if (!data.projects) return false;
+  const initialLen = data.projects.length;
+  data.projects = data.projects.filter((p) => !(p.id === id && (!userId || p.userId === userId)));
+
+  if (data.projects.length !== initialLen) {
+    saveDataFile(data);
+    return true;
+  }
+  return false;
+}
+
+// Project Task Operations
+export async function addProjectTask(
+  projectId: string,
+  taskInput: Omit<ProjectTask, 'id' | 'projectId' | 'createdAt'>,
+  userId?: string
+): Promise<ProjectTask | null> {
+  const project = await getProjectById(projectId, userId);
+  if (!project) return null;
+
+  const newTask: ProjectTask = {
+    ...taskInput,
+    id: `task_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    projectId,
+    status: taskInput.status || 'Todo',
+    createdAt: new Date().toISOString(),
+  };
+
+  const tasks = [...(project.tasks || []), newTask];
+  const doneCount = tasks.filter((t) => t.status === 'Done').length;
+  const progress = Math.round((doneCount / tasks.length) * 100);
+
+  await updateProject(projectId, { tasks, progress }, userId);
+  return newTask;
+}
+
+export async function updateProjectTask(
+  projectId: string,
+  taskId: string,
+  updates: Partial<ProjectTask>,
+  userId?: string
+): Promise<ProjectTask | null> {
+  const project = await getProjectById(projectId, userId);
+  if (!project || !project.tasks) return null;
+
+  const taskIdx = project.tasks.findIndex((t) => t.id === taskId);
+  if (taskIdx === -1) return null;
+
+  const currentTask = project.tasks[taskIdx];
+  const updatedTask: ProjectTask = {
+    ...currentTask,
+    ...updates,
+    completedAt:
+      updates.status === 'Done'
+        ? currentTask.completedAt || new Date().toISOString()
+        : updates.status
+        ? undefined
+        : currentTask.completedAt,
+  };
+
+  project.tasks[taskIdx] = updatedTask;
+
+  // Auto-recalculate progress
+  const doneCount = project.tasks.filter((t) => t.status === 'Done').length;
+  const progress = Math.round((doneCount / project.tasks.length) * 100);
+
+  // If all tasks done, set status to Completed if not already
+  let statusUpdate: any = {};
+  if (progress === 100 && project.status === 'In Progress') {
+    statusUpdate.status = 'Completed';
+  } else if (progress < 100 && project.status === 'Completed') {
+    statusUpdate.status = 'In Progress';
+  }
+
+  await updateProject(projectId, { tasks: project.tasks, progress, ...statusUpdate }, userId);
+  return updatedTask;
+}
+
+export async function deleteProjectTask(
+  projectId: string,
+  taskId: string,
+  userId?: string
+): Promise<boolean> {
+  const project = await getProjectById(projectId, userId);
+  if (!project || !project.tasks) return false;
+
+  const filteredTasks = project.tasks.filter((t) => t.id !== taskId);
+  if (filteredTasks.length === project.tasks.length) return false;
+
+  const doneCount = filteredTasks.filter((t) => t.status === 'Done').length;
+  const progress = filteredTasks.length > 0 ? Math.round((doneCount / filteredTasks.length) * 100) : 0;
+
+  await updateProject(projectId, { tasks: filteredTasks, progress }, userId);
+  return true;
+}
+
+export async function getProjectStats(userId?: string): Promise<ProjectStats> {
+  const projects = await getProjects(userId);
+
+  const totalProjects = projects.length;
+  const inProgress = projects.filter((p) => p.status === 'In Progress').length;
+  const completed = projects.filter((p) => p.status === 'Completed').length;
+  const onHold = projects.filter((p) => p.status === 'On Hold').length;
+
+  const totalBudget = projects.reduce((sum, p) => sum + (p.budget || 0), 0);
+  const totalSpent = projects.reduce((sum, p) => sum + (p.spent || 0), 0);
+
+  const totalTasks = projects.reduce((sum, p) => sum + (p.tasks?.length || 0), 0);
+  const completedTasks = projects.reduce(
+    (sum, p) => sum + (p.tasks?.filter((t) => t.status === 'Done').length || 0),
+    0
+  );
+
+  const averageProgress =
+    totalProjects > 0
+      ? Math.round(projects.reduce((sum, p) => sum + (p.progress || 0), 0) / totalProjects)
+      : 0;
+
+  return {
+    totalProjects,
+    inProgress,
+    completed,
+    onHold,
+    totalBudget: Number(totalBudget.toFixed(2)),
+    totalSpent: Number(totalSpent.toFixed(2)),
+    averageProgress,
+    totalTasks,
+    completedTasks,
+  };
+}
+

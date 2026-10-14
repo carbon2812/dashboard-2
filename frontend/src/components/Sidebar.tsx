@@ -17,6 +17,7 @@ import {
   X,
   LogOut,
   Users,
+  FolderKanban,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
@@ -50,6 +51,12 @@ export function Sidebar({
       href: '/expenses',
       icon: Receipt,
       badge: 'Live',
+    },
+    {
+      label: 'Projects',
+      href: '/projects',
+      icon: FolderKanban,
+      badge: 'Active',
     },
     {
       label: 'Employees & Salary',

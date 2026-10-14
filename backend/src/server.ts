@@ -34,6 +34,15 @@ import {
   createSalaryPayment,
   deleteSalaryPayment,
   getPayrollStats,
+  getProjects,
+  getProjectById,
+  createProject,
+  updateProject,
+  deleteProject,
+  addProjectTask,
+  updateProjectTask,
+  deleteProjectTask,
+  getProjectStats,
 } from './db';
 import { swaggerSpec } from './swagger';
 import { upload, UPLOAD_DIR } from './upload';
@@ -612,6 +621,171 @@ app.get('/api/payroll/stats', async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// -------------------------------------------------------------
+// 8. Project Management Endpoints
+// -------------------------------------------------------------
+app.get('/api/projects', async (req: Request, res: Response) => {
+  try {
+    const userId = getRequestUserId(req);
+    const { status, priority, search } = req.query;
+    const list = await getProjects(userId, {
+      status: status as string,
+      priority: priority as string,
+      search: search as string,
+    });
+    res.json({ success: true, data: list });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/projects/stats/summary', async (req: Request, res: Response) => {
+  try {
+    const userId = getRequestUserId(req);
+    const stats = await getProjectStats(userId);
+    res.json({ success: true, data: stats });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/projects/:id', async (req: Request, res: Response) => {
+  try {
+    const userId = getRequestUserId(req);
+    const project = await getProjectById(req.params.id, userId);
+    if (!project) return res.status(404).json({ success: false, error: 'Project not found' });
+    res.json({ success: true, data: project });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/projects', async (req: Request, res: Response) => {
+  try {
+    const userId = getRequestUserId(req);
+    const {
+      title,
+      description,
+      client,
+      category,
+      status,
+      priority,
+      budget,
+      spent,
+      currency,
+      startDate,
+      deadline,
+      progress,
+      teamMembers,
+      tasks,
+    } = req.body;
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({ success: false, error: 'Project title is required' });
+    }
+    if (!deadline) {
+      return res.status(400).json({ success: false, error: 'Project deadline is required' });
+    }
+
+    const created = await createProject({
+      userId,
+      title: title.trim(),
+      description,
+      client,
+      category: category || 'General',
+      status: status || 'In Progress',
+      priority: priority || 'Medium',
+      budget: Number(budget) || 0,
+      spent: Number(spent) || 0,
+      currency: currency || 'INR',
+      startDate: startDate || new Date().toISOString().split('T')[0],
+      deadline,
+      progress: progress !== undefined ? Number(progress) : 0,
+      teamMembers: Array.isArray(teamMembers) ? teamMembers : [],
+      tasks: Array.isArray(tasks) ? tasks : [],
+    });
+
+    res.status(201).json({ success: true, data: created });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/projects/:id', async (req: Request, res: Response) => {
+  try {
+    const userId = getRequestUserId(req);
+    const updated = await updateProject(req.params.id, req.body, userId);
+    if (!updated) return res.status(404).json({ success: false, error: 'Project not found' });
+    res.json({ success: true, data: updated });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/projects/:id', async (req: Request, res: Response) => {
+  try {
+    const userId = getRequestUserId(req);
+    const deleted = await deleteProject(req.params.id, userId);
+    if (!deleted) return res.status(404).json({ success: false, error: 'Project not found' });
+    res.json({ success: true, message: 'Project deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Project Tasks Endpoints
+app.post('/api/projects/:id/tasks', async (req: Request, res: Response) => {
+  try {
+    const userId = getRequestUserId(req);
+    const { title, description, assignedEmployeeId, assignedEmployeeName, status, priority, dueDate } = req.body;
+    if (!title || !title.trim()) {
+      return res.status(400).json({ success: false, error: 'Task title is required' });
+    }
+
+    const task = await addProjectTask(
+      req.params.id,
+      {
+        title: title.trim(),
+        description,
+        assignedEmployeeId,
+        assignedEmployeeName,
+        status: status || 'Todo',
+        priority: priority || 'Medium',
+        dueDate,
+      },
+      userId
+    );
+
+    if (!task) return res.status(404).json({ success: false, error: 'Project not found' });
+    res.status(201).json({ success: true, data: task });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/projects/:id/tasks/:taskId', async (req: Request, res: Response) => {
+  try {
+    const userId = getRequestUserId(req);
+    const updatedTask = await updateProjectTask(req.params.id, req.params.taskId, req.body, userId);
+    if (!updatedTask) return res.status(404).json({ success: false, error: 'Task or project not found' });
+    res.json({ success: true, data: updatedTask });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/projects/:id/tasks/:taskId', async (req: Request, res: Response) => {
+  try {
+    const userId = getRequestUserId(req);
+    const deleted = await deleteProjectTask(req.params.id, req.params.taskId, userId);
+    if (!deleted) return res.status(404).json({ success: false, error: 'Task or project not found' });
+    res.json({ success: true, message: 'Task deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 // -------------------------------------------------------------
 // 7. VPS Local Storage Receipt Upload Route

@@ -203,3 +203,54 @@ export interface PayrollStats {
   pendingDisbursements: number;
   recentPayments: SalaryPayment[];
 }
+
+export type ProjectStatus = 'Planning' | 'In Progress' | 'In Review' | 'Completed' | 'On Hold';
+export type ProjectPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
+
+export interface ProjectTask {
+  id: string;
+  projectId: string;
+  title: string;
+  description?: string;
+  assignedEmployeeId?: string;
+  assignedEmployeeName?: string;
+  status: 'Todo' | 'In Progress' | 'Done';
+  priority?: ProjectPriority;
+  dueDate?: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface Project {
+  id: string;
+  userId?: string;
+  title: string;
+  description?: string;
+  client?: string;
+  category?: string;
+  status: ProjectStatus;
+  priority: ProjectPriority;
+  budget: number;
+  spent: number;
+  currency: string;
+  startDate: string; // YYYY-MM-DD
+  deadline: string;  // YYYY-MM-DD
+  progress: number;  // 0-100 percentage
+  teamMembers?: string[]; // Array of employee IDs or employee names
+  tasks?: ProjectTask[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ProjectStats {
+  totalProjects: number;
+  inProgress: number;
+  completed: number;
+  onHold: number;
+  totalBudget: number;
+  totalSpent: number;
+  averageProgress: number;
+  totalTasks: number;
+  completedTasks: number;
+}
+

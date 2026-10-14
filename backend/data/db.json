@@ -72,6 +72,290 @@
     }
   ],
   "expenses": [],
-  "employees": [],
-  "salaryPayments": []
+  "employees": [
+    {
+      "id": "emp_aarav",
+      "name": "Aarav Sharma",
+      "email": "aarav.sharma@company.com",
+      "phone": "+91 98765 43210",
+      "department": "Engineering",
+      "designation": "Senior Lead Architect",
+      "baseSalary": 185000,
+      "status": "Active",
+      "joinDate": "2024-03-15",
+      "createdAt": "2024-03-15T09:00:00.000Z"
+    },
+    {
+      "id": "emp_priya",
+      "name": "Priya Patel",
+      "email": "priya.patel@company.com",
+      "phone": "+91 98765 43211",
+      "department": "Product & Design",
+      "designation": "Principal Product Designer",
+      "baseSalary": 160000,
+      "status": "Active",
+      "joinDate": "2024-06-01",
+      "createdAt": "2024-06-01T09:00:00.000Z"
+    },
+    {
+      "id": "emp_rohan",
+      "name": "Rohan Mehta",
+      "email": "rohan.mehta@company.com",
+      "phone": "+91 98765 43212",
+      "department": "Engineering",
+      "designation": "Full Stack Engineer",
+      "baseSalary": 125000,
+      "status": "Active",
+      "joinDate": "2025-01-10",
+      "createdAt": "2025-01-10T09:00:00.000Z"
+    }
+  ],
+  "salaryPayments": [],
+  "projects": [
+    {
+      "id": "proj_ai_analytics",
+      "title": "AI Financial Analytics & Forecasting",
+      "description": "Enterprise machine learning engine for predictive cashflow analysis and real-time anomaly detection.",
+      "client": "Apex Financial Global",
+      "category": "Fintech & AI",
+      "status": "In Progress",
+      "priority": "Urgent",
+      "budget": 1250000,
+      "spent": 780000,
+      "currency": "INR",
+      "startDate": "2026-02-01",
+      "deadline": "2026-06-15",
+      "progress": 65,
+      "teamMembers": [
+        "Aarav Sharma",
+        "Priya Patel",
+        "Rohan Mehta"
+      ],
+      "tasks": [
+        {
+          "id": "task_ai_1",
+          "projectId": "proj_ai_analytics",
+          "title": "Core telemetry data pipeline & Apache Kafka ingestion",
+          "description": "Establish high throughput streaming from banking ledger",
+          "status": "Done",
+          "priority": "High",
+          "dueDate": "2026-02-28",
+          "assignedEmployeeName": "Aarav Sharma",
+          "createdAt": "2026-02-01T10:00:00.000Z",
+          "completedAt": "2026-02-27T16:00:00.000Z"
+        },
+        {
+          "id": "task_ai_2",
+          "projectId": "proj_ai_analytics",
+          "title": "Train ensemble models for 90-day expense forecasting",
+          "description": "Achieve >92% accuracy across quarterly variance benchmarks",
+          "status": "Done",
+          "priority": "Urgent",
+          "dueDate": "2026-03-20",
+          "assignedEmployeeName": "Rohan Mehta",
+          "createdAt": "2026-02-15T10:00:00.000Z",
+          "completedAt": "2026-03-18T14:30:00.000Z"
+        },
+        {
+          "id": "task_ai_3",
+          "projectId": "proj_ai_analytics",
+          "title": "Build interactive visual charts & insight drill-down UI",
+          "description": "Implement responsive dark-mode charts with drill-down metrics",
+          "status": "In Progress",
+          "priority": "High",
+          "dueDate": "2026-04-30",
+          "assignedEmployeeName": "Priya Patel",
+          "createdAt": "2026-03-01T10:00:00.000Z"
+        },
+        {
+          "id": "task_ai_4",
+          "projectId": "proj_ai_analytics",
+          "title": "Enterprise SOC2 Type II audit and automated penetrations test",
+          "description": "Complete mandatory compliance sign-off with external auditor",
+          "status": "Todo",
+          "priority": "Medium",
+          "dueDate": "2026-06-01",
+          "assignedEmployeeName": "Aarav Sharma",
+          "createdAt": "2026-03-10T10:00:00.000Z"
+        }
+      ],
+      "createdAt": "2026-02-01T09:00:00.000Z",
+      "updatedAt": "2026-04-10T11:00:00.000Z"
+    },
+    {
+      "id": "proj_mobile_banking",
+      "title": "NextGen Mobile Banking Suite",
+      "description": "Cross-platform iOS and Android mobile banking application featuring zero-knowledge authentication.",
+      "client": "Horizon NeoBank Inc",
+      "category": "Mobile Application",
+      "status": "In Review",
+      "priority": "High",
+      "budget": 920000,
+      "spent": 840000,
+      "currency": "INR",
+      "startDate": "2026-01-10",
+      "deadline": "2026-04-25",
+      "progress": 88,
+      "teamMembers": [
+        "Priya Patel",
+        "Rohan Mehta"
+      ],
+      "tasks": [
+        {
+          "id": "task_mob_1",
+          "projectId": "proj_mobile_banking",
+          "title": "Interactive design prototype and Figma design system token handoff",
+          "status": "Done",
+          "priority": "Medium",
+          "dueDate": "2026-02-05",
+          "assignedEmployeeName": "Priya Patel",
+          "createdAt": "2026-01-10T10:00:00.000Z",
+          "completedAt": "2026-02-04T18:00:00.000Z"
+        },
+        {
+          "id": "task_mob_2",
+          "projectId": "proj_mobile_banking",
+          "title": "Biometric FaceID / Fingerprint & hardware key auth",
+          "status": "Done",
+          "priority": "Urgent",
+          "dueDate": "2026-03-10",
+          "assignedEmployeeName": "Rohan Mehta",
+          "createdAt": "2026-01-20T10:00:00.000Z",
+          "completedAt": "2026-03-08T17:00:00.000Z"
+        },
+        {
+          "id": "task_mob_3",
+          "projectId": "proj_mobile_banking",
+          "title": "Peer-to-peer instant split bill and UPI payment gateway",
+          "status": "Done",
+          "priority": "High",
+          "dueDate": "2026-03-31",
+          "assignedEmployeeName": "Rohan Mehta",
+          "createdAt": "2026-02-01T10:00:00.000Z",
+          "completedAt": "2026-03-30T12:00:00.000Z"
+        },
+        {
+          "id": "task_mob_4",
+          "projectId": "proj_mobile_banking",
+          "title": "App Store and Google Play beta flight test & QA review",
+          "status": "In Progress",
+          "priority": "High",
+          "dueDate": "2026-04-20",
+          "assignedEmployeeName": "Priya Patel",
+          "createdAt": "2026-03-15T10:00:00.000Z"
+        }
+      ],
+      "createdAt": "2026-01-10T09:00:00.000Z",
+      "updatedAt": "2026-04-08T15:30:00.000Z"
+    },
+    {
+      "id": "proj_cloud_migration",
+      "title": "Cloud Infrastructure & Multi-Region VPC",
+      "description": "High availability AWS migration with automated Terraform orchestration and zero downtime.",
+      "client": "Internal Enterprise Operations",
+      "category": "DevOps & Cloud",
+      "status": "In Progress",
+      "priority": "Medium",
+      "budget": 450000,
+      "spent": 195000,
+      "currency": "INR",
+      "startDate": "2026-03-01",
+      "deadline": "2026-07-30",
+      "progress": 42,
+      "teamMembers": [
+        "Aarav Sharma"
+      ],
+      "tasks": [
+        {
+          "id": "task_cloud_1",
+          "projectId": "proj_cloud_migration",
+          "title": "IaC Terraform declarative scripts for VPC subnets & security groups",
+          "status": "Done",
+          "priority": "High",
+          "dueDate": "2026-03-25",
+          "assignedEmployeeName": "Aarav Sharma",
+          "createdAt": "2026-03-01T10:00:00.000Z",
+          "completedAt": "2026-03-24T19:00:00.000Z"
+        },
+        {
+          "id": "task_cloud_2",
+          "projectId": "proj_cloud_migration",
+          "title": "PostgreSQL Aurora active-active cluster failover testing",
+          "status": "In Progress",
+          "priority": "Urgent",
+          "dueDate": "2026-05-15",
+          "assignedEmployeeName": "Aarav Sharma",
+          "createdAt": "2026-03-25T10:00:00.000Z"
+        },
+        {
+          "id": "task_cloud_3",
+          "projectId": "proj_cloud_migration",
+          "title": "Kubernetes horizontal pod autoscaler and Prometheus alerting",
+          "status": "Todo",
+          "priority": "Medium",
+          "dueDate": "2026-06-30",
+          "assignedEmployeeName": "Aarav Sharma",
+          "createdAt": "2026-04-01T10:00:00.000Z"
+        }
+      ],
+      "createdAt": "2026-03-01T09:00:00.000Z",
+      "updatedAt": "2026-04-12T14:00:00.000Z"
+    },
+    {
+      "id": "proj_crm_portal",
+      "title": "Enterprise Customer Portal & Billing System",
+      "description": "Self-serve client subscription management, recurring billing, and automated invoice dispatches.",
+      "client": "Zenith Retail Network",
+      "category": "SaaS Platform",
+      "status": "Completed",
+      "priority": "High",
+      "budget": 680000,
+      "spent": 645000,
+      "currency": "INR",
+      "startDate": "2025-11-01",
+      "deadline": "2026-02-28",
+      "progress": 100,
+      "teamMembers": [
+        "Aarav Sharma",
+        "Priya Patel"
+      ],
+      "tasks": [
+        {
+          "id": "task_crm_1",
+          "projectId": "proj_crm_portal",
+          "title": "Subscription lifecycle state machine & Stripe webhooks",
+          "status": "Done",
+          "priority": "High",
+          "dueDate": "2025-12-15",
+          "assignedEmployeeName": "Aarav Sharma",
+          "createdAt": "2025-11-01T10:00:00.000Z",
+          "completedAt": "2025-12-14T11:00:00.000Z"
+        },
+        {
+          "id": "task_crm_2",
+          "projectId": "proj_crm_portal",
+          "title": "PDF Invoice generator with digital GST taxation signature",
+          "status": "Done",
+          "priority": "Medium",
+          "dueDate": "2026-01-20",
+          "assignedEmployeeName": "Priya Patel",
+          "createdAt": "2025-12-15T10:00:00.000Z",
+          "completedAt": "2026-01-18T16:00:00.000Z"
+        },
+        {
+          "id": "task_crm_3",
+          "projectId": "proj_crm_portal",
+          "title": "Client acceptance sign-off and production release deployment",
+          "status": "Done",
+          "priority": "High",
+          "dueDate": "2026-02-25",
+          "assignedEmployeeName": "Aarav Sharma",
+          "createdAt": "2026-01-25T10:00:00.000Z",
+          "completedAt": "2026-02-24T18:00:00.000Z"
+        }
+      ],
+      "createdAt": "2025-11-01T09:00:00.000Z",
+      "updatedAt": "2026-02-28T17:00:00.000Z"
+    }
+  ]
 }
